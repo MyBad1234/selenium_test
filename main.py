@@ -5,85 +5,99 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common import exceptions
 
 from selenium.webdriver import ActionChains
-from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 
 driver = webdriver.Chrome()
-driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.206649%2C51.657446&z=13.63")
+driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
 
 
-def write__main_words():
-    """write Voronezh and advertising agency to search"""
-
-    time.sleep(1)
+def test_write_plus_it():
     text_box_input = driver.find_element(by=By.CSS_SELECTOR, value="input")
-    text_box_input.send_keys("Воронеж" + Keys.ENTER)
-    time.sleep(4)
-    text_box_input.send_keys(
-        "\ue003"
-        + "\ue003"
-        + "\ue003"
-        + "\ue003"
-        + "\ue003"
-        + "\ue003"
-        + "\ue003"
-        + "Рекламное агентство"
-        + Keys.ENTER
-    )
-
-    return text_box_input
+    text_box_input.send_keys("Плюс Ай Ти" + Keys.ENTER)
 
 
-text_box = write__main_words()
+test_write_plus_it()
 
 
-def get_scroll_results():
-    time.sleep(3)
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 10000)")
+def get_element_from_carousel(part_name):
+    """get tab from carousel by part_name"""
 
-    time.sleep(3)
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 20000)")
+    time.sleep(5)
+    cards_menu = driver.find_elements(by=By.CSS_SELECTOR, value='.carousel__content')
 
-    time.sleep(3)
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 30000)")
+    # get elements from all carousel
+    for_i = 0
+    for_j = 0
+    for i in cards_menu:
+        if for_i != 0:
+            break
 
-    time.sleep(3)
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 40000)")
-
-    time.sleep(3)
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 50000)")
-
-    lol = None
-    for i in driver.find_elements(by=By.CSS_SELECTOR, value='.search-snippet-view'):
         for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
-            if j.text == 'Плюс Ай Ти':
-                # print('wow')
-                # print(j)
-                # print(j.text)
-                # print(j.get_attribute('innerHTML'))
-                # print('\n\n\n\n')
+            if for_j != 0:
+                break
 
-                lol = j
-                ActionChains(driver) \
-                    .scroll_to_element(lol) \
-                    .perform()
+            for k in j.find_elements(by=By.CSS_SELECTOR, value='a'):
+                if k.text == part_name:
+                    photo = j
+                    for_i = 1
+                    for_j = 1
+                    break
 
-    # print(lol.get_attribute('class'))
-    return lol
+    return photo
 
 
-elem = get_scroll_results()
-elem.click()
+def go_photo():
+    """get photo from card"""
+
+    return get_element_from_carousel('Фото и видео')
 
 
+# get photos
+photo_elem = go_photo()
+photo_elem.click()
+
+
+def scroll_content():
+    """scroll all photo of company"""
+
+    time.sleep(2)
+    driver.execute_script("document.querySelector('.scroll__container').\
+            scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
+
+
+scroll_content()
+
+
+def go_reviews():
+    """go to the reviews tab"""
+
+    return get_element_from_carousel('Отзывы')
+
+
+# get reviews
+reviews_elem = go_reviews()
+reviews_elem.click()
+scroll_content()
+
+
+# get site
 def get_business_menu():
     """find site on card"""
     time.sleep(3)
     try:
+        driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
         driver.find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
             .find_element(by=By.CSS_SELECTOR, value='a').click()
     except exceptions.NoSuchElementException:
         get_business_menu()
 
 
+main_page = get_element_from_carousel('Обзор')
+main_page.click()
 get_business_menu()
+
+time.sleep(10)
+driver.close()
+
+
+# get_business_menu()
 input()
