@@ -96,7 +96,9 @@ main_page.click()
 get_business_menu()
 
 time.sleep(10)
-driver.close()
+# window = driver.current_window_handle
+# driver.switch_to_window(window)
+# driver.close()
 
 
 # get_business_menu()
