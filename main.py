@@ -52,8 +52,8 @@ def go_photo():
 
 
 # get photos
-photo_elem = go_photo()
-photo_elem.click()
+# photo_elem = go_photo()
+# photo_elem.click()
 
 
 def scroll_content():
@@ -64,7 +64,7 @@ def scroll_content():
             scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
 
 
-scroll_content()
+# scroll_content()
 
 
 def go_reviews():
@@ -74,9 +74,9 @@ def go_reviews():
 
 
 # get reviews
-reviews_elem = go_reviews()
-reviews_elem.click()
-scroll_content()
+# reviews_elem = go_reviews()
+# reviews_elem.click()
+# scroll_content()
 
 
 # get site
@@ -91,15 +91,60 @@ def get_business_menu():
         get_business_menu()
 
 
-main_page = get_element_from_carousel('Обзор')
-main_page.click()
-get_business_menu()
+# main_page = get_element_from_carousel('Обзор')
+# main_page.click()
+# get_business_menu()
 
-time.sleep(10)
-# window = driver.current_window_handle
-# driver.switch_to_window(window)
+# time.sleep(10)
+# driver.switch_to.window(driver.window_handles[1])
+# time.sleep(2)
 # driver.close()
 
+# work with bookmarks
+def add_bookmarks():
+    """find bookmarks and click to this"""
 
-# get_business_menu()
+    time.sleep(3)
+
+    # find element
+    elems = driver.find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
+        .find_elements(by=By.CSS_SELECTOR, value='button')
+
+    button = None
+    for i in elems:
+        if i.accessible_name == 'Закладки':
+            button = i
+
+    # if browser not find button
+    if button is None:
+        raise ValueError()
+
+    return button
+
+
+def get_close_bookmarks():
+    """close window after click to bookmark"""
+
+    return driver.find_element(by=By.CSS_SELECTOR, value='.close-button')
+
+
+try:
+    bookmark = add_bookmarks()
+    bookmark.click()
+
+    time.sleep(3)
+
+    # close window
+    close_btn = get_close_bookmarks()
+    close_btn.click()
+except ValueError:
+    pass
+
+
+# work with phone
+phone = driver.find_element(by=By.LINK_TEXT,  value='Показать телефон')
+phone.
+
+
+# for exit
 input()
