@@ -101,8 +101,8 @@ def get_business_menu():
 # driver.close()
 
 # work with bookmarks
-def add_bookmarks():
-    """find bookmarks and click to this"""
+def get_action_button(action_name):
+    """get action button by name"""
 
     time.sleep(3)
 
@@ -112,7 +112,8 @@ def add_bookmarks():
 
     button = None
     for i in elems:
-        if i.accessible_name == 'Закладки':
+        print(i.accessible_name)
+        if i.accessible_name == action_name:
             button = i
 
     # if browser not find button
@@ -129,7 +130,7 @@ def get_close_bookmarks():
 
 
 try:
-    bookmark = add_bookmarks()
+    bookmark = get_action_button('Закладки')
     bookmark.click()
 
     time.sleep(3)
@@ -142,9 +143,31 @@ except ValueError:
 
 
 # work with phone
-phone = driver.find_element(by=By.LINK_TEXT,  value='Показать телефон')
-phone.
+def get_phone():
+    """get phone and move to element"""
 
+    phone_text = driver.find_element(by=By.CSS_SELECTOR,  value='.card-phones-view__more')
+    ActionChains(driver).move_to_element(phone_text).perform()
+
+    return phone_text
+
+
+phone = get_phone()
+phone.click()
+
+
+# work with route
+def get_route_btn():
+    """get route btn and move to"""
+
+    route_btn = get_action_button('Маршрут')
+    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
+
+    return route_btn
+
+
+route = get_route_btn()
+route.click()
 
 # for exit
 input()
