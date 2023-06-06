@@ -7,9 +7,6 @@ from selenium.common import exceptions
 driver = webdriver.Chrome()
 driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
 
-driver1 = webdriver.Chrome()
-driver1.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
-
 
 # work with auth
 class YandexAuth:
@@ -58,27 +55,19 @@ class YandexAuth:
 
 # session 1
 auth_class = YandexAuth(driver)
-auth_class1 = YandexAuth(driver1)
 
 # go to form
 auth_class.get_menu_btn().click()
 auth_class.get_enter_btn().click()
 
-auth_class1.get_menu_btn().click()
-auth_class1.get_enter_btn().click()
 
 # work with form
 auth_class.input_text('y4ndex.genag4448@yandex.ru')
 auth_class.get_push_login_btn().click()
 
-auth_class1.input_text('y4ndex.genag4448@yandex.ru')
-auth_class1.get_push_login_btn().click()
-
 auth_class.input_text(text='Kkq-MUv-rSw-3zv-!@#', selector='input[type="password"]')
 auth_class.get_push_login_btn().click()
 
-auth_class1.input_text(text='Kkq-MUv-rSw-3zv-!@#', selector='input[type="password"]')
-auth_class1.get_push_login_btn().click()
 
 # for exit
 input()

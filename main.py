@@ -152,6 +152,64 @@ class YandexReviews:
         self.browser.driver.execute_script("document.querySelector('.scroll__container').\
                     scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
 
+class YandexAuth:
+
+    def __init__(self, browser: Browser):
+        self.browser = browser
+
+    def __get_menu_btn(self):
+        """gt burger menu with auth btn"""
+
+        time.sleep(3)
+
+        return self.browser.driver.find_element(
+            by=By.CSS_SELECTOR, value='.user-menu-control'
+        )
+
+    def __get_enter_btn(self):
+        """get enter btn from burger menu"""
+
+        time.sleep(2)
+
+        return self.browser.driver.find_element(by=By.LINK_TEXT, value='Войти')
+
+    def __get_input_by_css(self, css_selector):
+        """search input by css selector"""
+
+        return self.browser.driver.find_element(
+            by=By.CSS_SELECTOR, value=css_selector
+        )
+
+    def __input_text(self, text, selector='input[type="text"]'):
+        """input text to form"""
+
+        time.sleep(3)
+
+        input_form = self.__get_input_by_css(selector)
+        input_form.send_keys(text)
+
+    def __get_push_login_btn(self):
+        """get btn for pushing login and input password"""
+
+        time.sleep(4)
+
+        return self.browser.driver \
+            .find_element(by=By.CSS_SELECTOR, value='.passp-sign-in-button') \
+            .find_element(by=By.CSS_SELECTOR, value='button')
+
+    def auth(self, login, password):
+        """use all methods for auth in yandex maps"""
+
+        self.__get_menu_btn().click()
+        self.__get_enter_btn().click()
+
+        # work with opened form
+        self.__input_text(login)
+        self.__get_push_login_btn().click()
+
+        self.__input_text(text=password, selector='input[type="password"]')
+        self.__get_push_login_btn().click()
+
 
 #photo_elem = go_photo()
 #photo_elem.click()
@@ -223,5 +281,12 @@ photo_obj.scroll_content()
 review_obj = YandexReviews(browser)
 review_obj.go_to_review()
 review_obj.scroll_content()
+
+# work with auth
+auth_obj = YandexAuth(browser)
+auth_obj.auth(
+    login='y4ndex.genag4448@yandex.ru',
+    password='Kkq-MUv-rSw-3zv-!@#'
+)
 
 input()
