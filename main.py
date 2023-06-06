@@ -89,16 +89,25 @@ class YandexPhoto:
     def __init__(self, browser: Browser):
         self.browser = browser
 
-    def go_to_photo(self):
+    def go_to_photo(self) -> dict:
         """go to tab with photo"""
 
         if self.browser.company_found is not True:
             # control company
-            raise ValueError()
+            raise CompanyException()
 
         # go tab
         self.__photo_tab = self.browser.get_element_from_carousel('Фото и видео')
-        self.__photo_tab.click()
+        try:
+            self.__photo_tab.click()
+        except exceptions.ElementClickInterceptedException:
+            return {
+                'errors': 1
+            }
+
+        return {
+            'errors': 0
+        }
 
     def scroll_content(self):
         """scroll all photo of company"""
@@ -111,11 +120,37 @@ class YandexPhoto:
 class YandexReviews:
     """methods for work with review in Yandex Map"""
 
+    __reviews_tab: selenium.webdriver.remote.webelement.WebElement
+
     def __init__(self, browser: Browser):
         self.browser = browser
 
-    def go_to_review(self):
-        pass
+    def go_to_review(self) -> dict:
+        """go to tab with review"""
+
+        if self.browser.company_found is not True:
+            # control company
+            raise CompanyException()
+
+        # go to tab
+        self.__reviews_tab = self.browser.get_element_from_carousel('Отзывы')
+        try:
+            self.__reviews_tab.click()
+        except exceptions.ElementClickInterceptedException:
+            return {
+                'errors': 1
+            }
+
+        return {
+            'errors': 0
+        }
+
+    def scroll_content(self):
+        """scroll tab with reviews"""
+
+        time.sleep(2)
+        self.browser.driver.execute_script("document.querySelector('.scroll__container').\
+                    scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
 
 
 #photo_elem = go_photo()
@@ -180,12 +215,13 @@ test_write_plus_it(browser)
 browser.company_found = True
 
 # work with photo
-photo = YandexPhoto(browser)
-photo.go_to_photo()
-photo.scroll_content()
-photo.browser.back_to_main()
+photo_obj = YandexPhoto(browser)
+photo_obj.go_to_photo()
+photo_obj.scroll_content()
 
 # work with review
-
+review_obj = YandexReviews(browser)
+review_obj.go_to_review()
+review_obj.scroll_content()
 
 input()
