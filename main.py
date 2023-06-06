@@ -1,4 +1,6 @@
 import time
+
+import selenium.webdriver.remote.webelement
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -6,82 +8,149 @@ from selenium.common import exceptions
 
 from selenium.webdriver import ActionChains
 
-driver = webdriver.Chrome()
-driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
+
+class CompanyException(Exception):
+    pass
 
 
-def test_write_plus_it():
-    text_box_input = driver.find_element(by=By.CSS_SELECTOR, value="input")
+class Browser:
+    """class for create webdriver"""
+
+    company_found: bool
+
+    def __init__(self):
+        self.driver = webdriver.Chrome()
+
+    def get_element_from_carousel(self, part_name):
+        """get tab from carousel by part_name"""
+
+        if self.company_found is not True:
+            raise CompanyException()
+
+        time.sleep(5)
+        cards_menu = self.driver.find_elements(
+            by=By.CSS_SELECTOR, value='.carousel__content'
+        )
+
+        # get elements from all carousel
+        for_i = 0
+        for_j = 0
+        for i in cards_menu:
+            if for_i != 0:
+                break
+
+            for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
+                if for_j != 0:
+                    break
+
+                for k in j.find_elements(by=By.CSS_SELECTOR, value='a'):
+                    if k.text == part_name:
+                        photo = j
+                        for_i = 1
+                        for_j = 1
+                        break
+
+        return photo
+
+    def back_to_main(self):
+        """go to tab with review of company"""
+
+        back_tab = self.get_element_from_carousel('Обзор')
+        back_tab.click()
+
+
+# driver = webdriver.Chrome()
+# driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
+
+
+def test_write_plus_it(browser_class: Browser):
+    time.sleep(3)
+    text_box_input = browser_class.driver.find_element(by=By.CSS_SELECTOR, value="input")
     text_box_input.send_keys("Плюс Ай Ти" + Keys.ENTER)
 
 
-test_write_plus_it()
+# test_write_plus_it()
 
 
-def get_element_from_carousel(part_name):
-    """get tab from carousel by part_name"""
-
-    time.sleep(5)
-    cards_menu = driver.find_elements(by=By.CSS_SELECTOR, value='.carousel__content')
-
-    # get elements from all carousel
-    for_i = 0
-    for_j = 0
-    for i in cards_menu:
-        if for_i != 0:
-            break
-
-        for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
-            if for_j != 0:
-                break
-
-            for k in j.find_elements(by=By.CSS_SELECTOR, value='a'):
-                if k.text == part_name:
-                    photo = j
-                    for_i = 1
-                    for_j = 1
-                    break
-
-    return photo
 
 
-def go_photo():
+# def go_photo():
     """get photo from card"""
 
-    return get_element_from_carousel('Фото и видео')
+#    return get_element_from_carousel('Фото и видео')
 
 
 # get photos
-photo_elem = go_photo()
-photo_elem.click()
+class YandexPhoto:
+    """methods for work with photo in Yandex Map"""
 
+    __photo_tab: selenium.webdriver.remote.webelement.WebElement
 
-def scroll_content():
-    """scroll all photo of company"""
+    def __init__(self, browser: Browser):
+        self.browser = browser
 
-    time.sleep(2)
-    driver.execute_script("document.querySelector('.scroll__container').\
+    def go_to_photo(self):
+        """go to tab with photo"""
+
+        if self.browser.company_found is not True:
+            # control company
+            raise ValueError()
+
+        # go tab
+        self.__photo_tab = self.browser.get_element_from_carousel('Фото и видео')
+        self.__photo_tab.click()
+
+    def scroll_content(self):
+        """scroll all photo of company"""
+
+        time.sleep(2)
+        self.browser.driver.execute_script("document.querySelector('.scroll__container').\
             scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
 
 
-scroll_content()
+class YandexReviews:
+    """methods for work with review in Yandex Map"""
+
+    def __init__(self, browser: Browser):
+        self.browser = browser
+
+    def go_to_review(self):
+        pass
 
 
-def go_reviews():
+#photo_elem = go_photo()
+#photo_elem.click()
+
+
+#def scroll_content():
+    """scroll all photo of company"""
+
+#    time.sleep(2)
+#    driver.execute_script("document.querySelector('.scroll__container').\
+#            scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
+
+
+#scroll_content()
+
+
+#def go_reviews():
     """go to the reviews tab"""
 
-    return get_element_from_carousel('Отзывы')
+#    return get_element_from_carousel('Отзывы')
 
 
 # get reviews
+"""
 reviews_elem = go_reviews()
 reviews_elem.click()
 scroll_content()
+"""
 
 
 # get site
+"""
 def get_business_menu():
-    """find site on card"""
+    '''find site on card'''
     time.sleep(3)
     try:
         driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
@@ -89,17 +158,34 @@ def get_business_menu():
             .find_element(by=By.CSS_SELECTOR, value='a').click()
     except exceptions.NoSuchElementException:
         get_business_menu()
+"""
 
 
-main_page = get_element_from_carousel('Обзор')
-main_page.click()
-get_business_menu()
+#main_page = get_element_from_carousel('Обзор')
+#main_page.click()
+#get_business_menu()
 
-time.sleep(10)
+#time.sleep(10)
 # window = driver.current_window_handle
 # driver.switch_to_window(window)
 # driver.close()
 
 
 # get_business_menu()
+browser = Browser()
+browser.driver.get(
+    url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
+)
+test_write_plus_it(browser)
+browser.company_found = True
+
+# work with photo
+photo = YandexPhoto(browser)
+photo.go_to_photo()
+photo.scroll_content()
+photo.browser.back_to_main()
+
+# work with review
+
+
 input()

@@ -9,7 +9,7 @@ driver.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.0
 
 driver1 = webdriver.Chrome()
 driver1.get("https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06")
-driver1.find
+
 
 # work with auth
 class YandexAuth:
