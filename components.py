@@ -281,3 +281,57 @@ class CompanySiteYandex:
         self.browser.driver.switch_to.window(
             self.browser.driver.window_handles[0]
         )
+
+
+class PhoneYandex:
+    """see phone of company"""
+
+    def __init__(self, browser: Browser):
+        self.browser = browser
+
+    def see_phone(self):
+        """scroll card to phone"""
+
+        # scroll to phone
+        phone_text = self.browser.driver.find_element(
+            by=By.CSS_SELECTOR, value='.card-phones-view__more'
+        )
+        ActionChains(self.browser.driver).move_to_element(phone_text).perform()
+
+        # see phone
+        phone_text.click()
+
+    def return_to_start_card(self):
+        """scroll to start of card"""
+
+        self.browser.driver.execute_script(
+            "document.querySelector('.scroll__container').scrollTo(0, 0)"
+        )
+
+
+class RouteYandex(SearchCompanyYandex):
+    """click to route"""
+
+    def __init__(self, browser: Browser):
+        super.__init__(browser)
+
+
+
+
+"""
+
+
+
+# work with route
+def get_route_btn():
+    """get route btn and move to"""
+
+    route_btn = get_action_button('Маршрут')
+    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
+
+    return route_btn
+
+
+route = get_route_btn()
+route.click()
+"""
