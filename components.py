@@ -247,3 +247,37 @@ class SearchCompanyYandex:
                         .perform()
 
         return card
+
+
+class CompanySiteYandex:
+    """get and use site of company"""
+
+    def __init__(self, browser: Browser):
+        self.browser = browser
+
+    def go_site(self):
+        """find site on card"""
+
+        time.sleep(3)
+        try:
+            # open site
+            self.browser.driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
+            self.browser.driver.find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
+                .find_element(by=By.CSS_SELECTOR, value='a').click()
+
+        except exceptions.NoSuchElementException:
+            self.get_business_menu()
+
+    def close_site(self):
+        """method for close site"""
+
+        time.sleep(20)
+        self.browser.driver.switch_to.window(
+            self.browser.driver.window_handles[1]
+        )
+        self.browser.driver.close()
+
+        # go to card
+        self.browser.driver.switch_to.window(
+            self.browser.driver.window_handles[0]
+        )
