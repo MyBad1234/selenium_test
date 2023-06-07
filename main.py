@@ -1,7 +1,8 @@
 import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
-    CompanyException, SearchCompanyYandex
+    CompanyException, SearchCompanyYandex, CompanySiteYandex,
+    RouteYandex, PhoneYandex
 )
 
 
@@ -26,6 +27,7 @@ def photo_func():
 
     photo_obj.scroll_content()
 
+    print('photo_func')
     return {
         'error': 0
     }
@@ -44,6 +46,7 @@ def review_func():
 
     review_obj.scroll_content()
 
+    print('review_func')
     return {
         'error': 0
     }
@@ -58,6 +61,7 @@ def auth_func():
         password='Kkq-MUv-rSw-3zv-!@#'
     )
 
+    print('auth_func')
     return {
         'error': 0
     }
@@ -81,6 +85,46 @@ def search_func():
     except CompanyException:
         pass
 
+    print('search_func')
+    return {
+        'error': 0
+    }
+
+
+def site_func():
+    """func for visit site"""
+
+    site_obj = CompanySiteYandex(browser=browser)
+    site_obj.go_site()
+    site_obj.close_site()
+
+    print('site_func')
+    return {
+        'error': 0
+    }
+
+
+def phone_func():
+    """func for see phone"""
+
+    phone_obj = PhoneYandex(browser)
+    phone_obj.see_phone()
+    phone_obj.return_to_start_card()
+
+    print('phone_func')
+    return {
+        'error': 0
+    }
+
+
+def route_func():
+    """func for making route"""
+
+    route_obj = RouteYandex(browser, 'Воронеж', 'Плюс Ай Ти')
+    route_obj.make_route()
+    route_obj.input_text()
+
+    print('route_func')
     return {
         'error': 0
     }
@@ -105,6 +149,21 @@ data_set = [
     {
         'name': 'search',
         'func': search_func,
+        'link': False
+    },
+    {
+        'name': 'site',
+        'func': site_func,
+        'link': False
+    },
+    {
+        'name': 'phone',
+        'func': phone_func,
+        'link': False
+    },
+    {
+        'name': 'route',
+        'func': route_func,
         'link': False
     }
 ]
@@ -144,6 +203,7 @@ while logic:
 
                 if for_while_pass == 0:
                     while_pass = False
+                    browser.back_to_main()
 
             # work with error's elements
             for i in error_data_set:
@@ -157,4 +217,5 @@ while logic:
         logic = False
 
 
+print('the end')
 input()

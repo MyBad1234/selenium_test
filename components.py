@@ -19,8 +19,7 @@ class Browser:
     def __init__(self):
         self.driver = webdriver.Chrome()
 
-    def get_element_from_carousel(self, part_name):
-        """get tab from carousel by part_name"""
+    def recursive_func(self, part_name):
 
         if self.company_found is not True:
             raise CompanyException()
@@ -54,6 +53,15 @@ class Browser:
             raise CompanyException()
 
         return photo
+
+    def get_element_from_carousel(self, part_name):
+        """get tab from carousel by part_name"""
+
+        try:
+            return self.recursive_func(part_name)
+        except exceptions.StaleElementReferenceException:
+            time.sleep(2)
+            return self.get_element_from_carousel(part_name)
 
     def back_to_main(self):
         """go to tab with review of company"""
@@ -194,6 +202,8 @@ class YandexAuth:
         self.__input_text(text=password, selector='input[type="password"]')
         self.__get_push_login_btn().click()
 
+        input()
+
 
 class SearchCompanyYandex:
     """search company by keywords"""
@@ -291,6 +301,8 @@ class PhoneYandex:
 
     def see_phone(self):
         """scroll card to phone"""
+
+        time.sleep(5)
 
         # scroll to phone
         phone_text = self.browser.driver.find_element(
