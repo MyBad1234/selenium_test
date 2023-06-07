@@ -60,14 +60,6 @@ class Browser:
         back_tab.click()
 
 
-def test_write_plus_it(browser_class: Browser):
-    time.sleep(3)
-    text_box_input = browser_class.driver.find_element(by=By.CSS_SELECTOR, value="input")
-    for i in range(20):
-        text_box_input.send_keys("\ue003")
-    text_box_input.send_keys("Плюс Ай Ти" + Keys.ENTER)
-
-
 # get photos
 class YandexPhoto:
     """methods for work with photo in Yandex Map"""
@@ -103,6 +95,61 @@ class YandexPhoto:
         time.sleep(2)
         self.browser.driver.execute_script("document.querySelector('.scroll__container').\
             scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
+
+
+class SearchCompanyYandex:
+    """search company by keywords"""
+
+    def __init__(self, browser: Browser, keyword: str, company: str):
+        self.browser = browser
+        self.keyword = keyword
+        self.company = company
+
+    def input_text(self):
+        """input keyword and company to search"""
+
+        time.sleep(1)
+
+        # input text
+        for i in range(10):
+            text_box_input = self.browser.driver.find_element(by=By.CSS_SELECTOR, value="input")
+            try:
+                text_box_input.send_keys(
+                    self.keyword
+                    + "\ue00d"
+                    + self.company
+                    + "\ue007"
+                )
+                return
+
+            except exceptions.StaleElementReferenceException:
+                time.sleep(3)
+
+        raise exceptions.StaleElementReferenceException()
+
+
+    def scroll_results(self):
+        """view all results and search"""
+
+        # control: open company or list of company
+        elements = self.browser.driver.find_elements(by=By.CSS_SELECTOR, value='.search-snippet-view')
+        if len(elements) == 0:
+            raise CompanyException()
+
+        time.sleep(3)
+        self.browser.driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 10000)")
+
+        # if list of company
+        card = None
+        for i in elements:
+            for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
+                if j.text == self.company:
+                    card = j
+                    ActionChains(self.browser.driver) \
+                        .scroll_to_element(card) \
+                        .perform()
+
+        return card
 
 
 class YandexReviews:
@@ -188,7 +235,7 @@ class YandexAuth:
             .find_element(by=By.CSS_SELECTOR, value='.passp-sign-in-button') \
             .find_element(by=By.CSS_SELECTOR, value='button')
 
-    def auth(self, login, password, return_func):
+    def auth(self, login, password):
         """use all methods for auth in yandex maps"""
 
         self.__get_menu_btn().click()
@@ -200,8 +247,6 @@ class YandexAuth:
 
         self.__input_text(text=password, selector='input[type="password"]')
         self.__get_push_login_btn().click()
-
-        return_func(self.browser)
 
 
 # photo_elem = go_photo()
@@ -263,7 +308,6 @@ browser = Browser()
 browser.driver.get(
     url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
 )
-test_write_plus_it(browser)
 browser.company_found = True
 
 
@@ -306,12 +350,35 @@ def review_func():
 
 def auth_func():
     """work with auth"""
+
     auth_obj = YandexAuth(browser)
     auth_obj.auth(
         login='y4ndex.genag4448@yandex.ru',
-        password='Kkq-MUv-rSw-3zv-!@#',
-        return_func=test_write_plus_it
+        password='Kkq-MUv-rSw-3zv-!@#'
     )
+
+    return {
+        'error': 0
+    }
+
+
+def search_func():
+    """work with search company in yandex maps"""
+
+    search_obj = SearchCompanyYandex(
+        browser=browser,
+        keyword='Воронеж',
+        company='Плюс Ай Ти'
+    )
+    search_obj.input_text()
+
+    # find company and click to card
+    try:
+        company_btn = search_obj.scroll_results()
+        company_btn.click()
+
+    except CompanyException:
+        pass
 
     return {
         'error': 0
@@ -333,6 +400,11 @@ data_set = [
         'name': 'auth',
         'func': auth_func,
         'link': False
+    },
+    {
+        'name': 'search',
+        'func': search_func,
+        'link': False
     }
 ]
 error_data_set = []
@@ -344,6 +416,9 @@ while logic:
     if first == 0:
         rand_int = 2
         first = 1
+    elif first == 1:
+        rand_int = 2
+        first = 2
     else:
         rand_int = random.randint(0, len(data_set) - 1)
 
