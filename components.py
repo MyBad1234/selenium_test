@@ -271,7 +271,7 @@ class CompanySiteYandex:
     def close_site(self):
         """method for close site"""
 
-        time.sleep(20)
+        time.sleep(10)
         self.browser.driver.switch_to.window(
             self.browser.driver.window_handles[1]
         )
@@ -304,6 +304,8 @@ class PhoneYandex:
     def return_to_start_card(self):
         """scroll to start of card"""
 
+        time.sleep(5)
+
         self.browser.driver.execute_script(
             "document.querySelector('.scroll__container').scrollTo(0, 0)"
         )
@@ -312,26 +314,32 @@ class PhoneYandex:
 class RouteYandex(SearchCompanyYandex):
     """click to route"""
 
-    def __init__(self, browser: Browser):
-        super.__init__(browser)
+    def __init__(self, browser: Browser, keyword: str, company: str):
+        super().__init__(browser, keyword, company)
 
+    def __get_action_button(self, action_name):
+        """get action button by name"""
 
+        time.sleep(3)
 
+        # find element
+        menu_elements = self.browser.driver \
+            .find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
+            .find_elements(by=By.CSS_SELECTOR, value='button')
 
-"""
+        button = None
+        for i in menu_elements:
+            if i.accessible_name == action_name:
+                button = i
 
+        # if browser not find button
+        if button is None:
+            raise ValueError()
 
+        return button
 
-# work with route
-def get_route_btn():
-    """get route btn and move to"""
+    def make_route(self):
+        """click to btn for making route"""
 
-    route_btn = get_action_button('Маршрут')
-    driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 0)")
-
-    return route_btn
-
-
-route = get_route_btn()
-route.click()
-"""
+        route_btn = self.__get_action_button('Маршрут')
+        route_btn.click()
