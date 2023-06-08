@@ -1,16 +1,27 @@
+import sys
 import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex
+    RouteYandex, PhoneYandex, ModeException
 )
 
+try:
+    argument = sys.argv[1]
 
-browser = Browser()
-browser.driver.get(
-    url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
-)
-browser.company_found = True
+    browser = Browser(mode=argument)
+    browser.driver.get(
+        url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
+    )
+    browser.company_found = True
+
+except IndexError:
+    print('error of arguments')
+    sys.exit()
+
+except ModeException:
+    print('input correct mode of work for clicker')
+    sys.exit()
 
 
 def photo_func():
