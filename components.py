@@ -203,6 +203,12 @@ class YandexAuth:
 
         time.sleep(2)
 
+        # screen
+        self.browser.driver.save_screenshot(
+            str(pathlib.Path(__file__).parent)
+            + '/screens/get_login.png'
+        )
+
         return self.browser.driver.find_element(
             by=By.CSS_SELECTOR, value=css_selector
         )
