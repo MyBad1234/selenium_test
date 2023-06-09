@@ -153,6 +153,12 @@ class YandexReviews:
         # go to tab
         self.__reviews_tab = self.browser.get_element_from_carousel('Отзывы')
         try:
+            # save screen before error
+            self.browser.driver.save_screenshot(
+                str(pathlib.Path(__file__).parent)
+                + '/screens/before_click_reviews_tab.png'
+            )
+
             self.__reviews_tab.click()
         except exceptions.ElementClickInterceptedException:
             return {
