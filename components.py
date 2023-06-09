@@ -165,6 +165,11 @@ class YandexReviews:
                 'errors': 1
             }
 
+        except exceptions.ElementNotInteractableException:
+            return {
+                'errors': 1
+            }
+
         return {
             'errors': 0
         }
