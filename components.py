@@ -254,7 +254,6 @@ class SearchCompanyYandex:
         """input keyword and company to search"""
 
         time.sleep(1)
-        print(str(pathlib.Path(__file__).parent) + '/screens/lol2.png')
         self.browser.driver.save_screenshot(
             str(pathlib.Path(__file__).parent)
             + '/screens/search_before_sleep.png'
