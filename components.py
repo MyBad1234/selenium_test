@@ -30,7 +30,7 @@ class Browser:
             options.add_argument('--no-sandbox')
             options.add_argument("--disable-gpu")
 
-            self.driver = webdriver.Chrome(options=options)
+            self.driver = webdriver.Firefox()
             self.in_windows = True
         elif mode == 'docker':
             # set options for browser in background
@@ -260,7 +260,7 @@ class SearchCompanyYandex:
         )
 
 
-        time.sleep(30)
+        time.sleep(15)
 
         self.browser.driver.save_screenshot(
             str(pathlib.Path(__file__).parent)
@@ -389,9 +389,17 @@ class RouteYandex(SearchCompanyYandex):
             .find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
             .find_elements(by=By.CSS_SELECTOR, value='button')
 
+        print(len(menu_elements))
+
+        # screen
+        self.browser.driver.save_screenshot(
+            str(pathlib.Path(__file__).parent)
+            + '/screens/search_route.png'
+        )
+
         button = None
         for i in menu_elements:
-            if i.accessible_name == action_name:
+            if i.text == action_name:
                 button = i
 
         # if browser not find button
