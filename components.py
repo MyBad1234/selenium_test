@@ -363,13 +363,16 @@ class PhoneYandex:
 
         time.sleep(10)
 
-
-
         # scroll to phone
+        input()
+        print('print-1')
         phone_text = self.browser.driver.find_element(
             by=By.CSS_SELECTOR, value='.card-phones-view__more'
         )
         ActionChains(self.browser.driver).move_to_element(phone_text).perform()
+
+        input()
+        print('print-2')
 
         # see phone
         phone_text.click()
