@@ -2,7 +2,7 @@ import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex
+    RouteYandex, PhoneYandex, BookmarkYandex
 )
 
 
@@ -130,6 +130,18 @@ def route_func():
     }
 
 
+def bookmark_func():
+    """func for click to bookmark"""
+
+    bookmark_obj = BookmarkYandex(browser=browser)
+    bookmark_obj.click_bookmark()
+
+    print('bookmark_func')
+    return {
+        'error': 0
+    }
+
+
 data_set = [
     {
         'name': 'photo',
@@ -164,6 +176,11 @@ data_set = [
     {
         'name': 'route',
         'func': route_func,
+        'link': False
+    },
+    {
+        'name': 'bookmark',
+        'func': bookmark_func,
         'link': False
     }
 ]

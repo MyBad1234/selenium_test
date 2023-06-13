@@ -357,3 +357,52 @@ class RouteYandex(SearchCompanyYandex):
 
         route_btn = self.__get_action_button('Маршрут')
         route_btn.click()
+
+
+class BookmarkYandex:
+    """click to 'add to bookmark' btn"""
+
+    def __init__(self, browser: Browser):
+        self.browser = browser
+
+    def __get_bookmark_btn(self, action_name):
+        """find bookmark btn and click"""
+
+        time.sleep(5)
+
+        # get btn
+        elems = self.browser.driver \
+            .find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
+            .find_elements(by=By.CSS_SELECTOR, value='button')
+
+        button = None
+        for i in elems:
+            print(i.accessible_name)
+            if i.accessible_name == action_name:
+                button = i
+
+        # if browser not find button
+        if button is None:
+            raise ValueError()
+
+        return button
+
+    def __get_close_bookmark(self):
+        """click and close bookmark"""
+
+        return self.browser.driver.find_element(by=By.CSS_SELECTOR, value='.close-button')
+
+    def click_bookmark(self):
+        """click and close bookmark"""
+
+        bookmark_btn = self.__get_bookmark_btn('Закладки')
+
+        # click
+        time.sleep(2)
+        bookmark_btn.click()
+
+        # close
+        close_btn = self.__get_close_bookmark()
+
+        time.sleep(2)
+        close_btn.click()
