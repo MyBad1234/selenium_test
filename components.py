@@ -1,19 +1,13 @@
 import time
-import pathlib
 
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class CompanyException(Exception):
-    pass
-
-
-class ModeException(Exception):
     pass
 
 
@@ -21,31 +15,9 @@ class Browser:
     """class for create webdriver"""
 
     company_found: bool
-    in_windows: bool
 
-    def __init__(self, mode: str):
-        if mode == 'window':
-            options = webdriver.ChromeOptions()
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument("--disable-gpu")
-
-            self.driver = webdriver.Firefox()
-            self.in_windows = True
-        elif mode == 'docker':
-            # set options for browser in background
-            options = FirefoxOptions()
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument("--disable-gpu")
-
-            # run background browser
-            self.driver = webdriver.Firefox(
-                options=options
-            )
-            self.in_windows = False
-        else:
-            raise ModeException()
+    def __init__(self):
+        self.driver = webdriver.Chrome()
 
     def recursive_func(self, part_name):
 
@@ -77,7 +49,6 @@ class Browser:
                         break
 
         # if not found element
-
         if photo is None:
             raise CompanyException()
 
@@ -153,19 +124,8 @@ class YandexReviews:
         # go to tab
         self.__reviews_tab = self.browser.get_element_from_carousel('Отзывы')
         try:
-            # save screen before error
-            self.browser.driver.save_screenshot(
-                str(pathlib.Path(__file__).parent)
-                + '/screens/before_click_reviews_tab.png'
-            )
-
             self.__reviews_tab.click()
         except exceptions.ElementClickInterceptedException:
-            return {
-                'errors': 1
-            }
-
-        except exceptions.ElementNotInteractableException:
             return {
                 'errors': 1
             }
@@ -208,12 +168,6 @@ class YandexAuth:
 
         time.sleep(2)
 
-        # screen
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/get_login.png'
-        )
-
         return self.browser.driver.find_element(
             by=By.CSS_SELECTOR, value=css_selector
         )
@@ -242,15 +196,13 @@ class YandexAuth:
         self.__get_enter_btn().click()
 
         # work with opened form
-        self.browser.driver.save_screenshot('screen/auth.png')
         self.__input_text(login)
         self.__get_push_login_btn().click()
 
         self.__input_text(text=password, selector='input[type="password"]')
         self.__get_push_login_btn().click()
 
-        if self.browser.in_windows:
-            input()
+        input()
 
 
 class SearchCompanyYandex:
@@ -265,18 +217,7 @@ class SearchCompanyYandex:
         """input keyword and company to search"""
 
         time.sleep(1)
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/search_before_sleep.png'
-        )
 
-
-        time.sleep(15)
-
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/search_after_sleep.png'
-        )
         # input text
         for i in range(10):
             text_box_input = self.browser.driver.find_element(by=By.CSS_SELECTOR, value="input")
@@ -361,20 +302,17 @@ class PhoneYandex:
     def see_phone(self):
         """scroll card to phone"""
 
-        time.sleep(10)
+        time.sleep(5)
 
         # scroll to phone
+        self.browser.driver.execute_script(
+            "document.querySelector('.card-phones-view__more').scrollIntoView({block: 'center'})"
+        )
 
-
+        # get phone and see it
         phone_text = self.browser.driver.find_element(
             by=By.CSS_SELECTOR, value='.card-phones-view__more'
         )
-        ActionChains(self.browser.driver).move_to_element(phone_text).perform()
-
-
-
-
-        # see phone
         phone_text.click()
 
     def return_to_start_card(self):
@@ -403,17 +341,9 @@ class RouteYandex(SearchCompanyYandex):
             .find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
             .find_elements(by=By.CSS_SELECTOR, value='button')
 
-        print(len(menu_elements))
-
-        # screen
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/search_route.png'
-        )
-
         button = None
         for i in menu_elements:
-            if i.text == action_name:
+            if i.accessible_name == action_name:
                 button = i
 
         # if browser not find button
@@ -425,13 +355,5 @@ class RouteYandex(SearchCompanyYandex):
     def make_route(self):
         """click to btn for making route"""
 
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/before_search_route.png'
-        )
         route_btn = self.__get_action_button('Маршрут')
-        self.browser.driver.save_screenshot(
-            str(pathlib.Path(__file__).parent)
-            + '/screens/before_click_route.png'
-        )
         route_btn.click()
