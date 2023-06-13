@@ -1,0 +1,15 @@
+version: "2.18.1"
+
+services:
+  db:
+    container_name: mysql_clicker
+    build:
+      context: ./modules/db
+  web:
+    container_name: web_page
+    build:
+      context: ./modules/web
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
