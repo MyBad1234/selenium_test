@@ -305,12 +305,14 @@ class PhoneYandex:
         time.sleep(5)
 
         # scroll to phone
+        self.browser.driver.execute_script(
+            "document.querySelector('.card-phones-view__more').scrollIntoView({block: 'center'})"
+        )
+
+        # get phone and see it
         phone_text = self.browser.driver.find_element(
             by=By.CSS_SELECTOR, value='.card-phones-view__more'
         )
-        ActionChains(self.browser.driver).move_to_element(phone_text).perform()
-
-        # see phone
         phone_text.click()
 
     def return_to_start_card(self):
