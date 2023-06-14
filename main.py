@@ -180,53 +180,27 @@ data_set = [
 ]
 error_data_set = []
 
-logic = True
-first = 0
-while logic:
-    # get random elem
-    if first == 0:
-        rand_int = 2
-        first = 1
-    elif first == 1:
-        rand_int = 2
-        first = 2
-    else:
-        rand_int = random.randint(0, len(data_set) - 1)
 
-    # control on error
-    if data_set[rand_int].get('func')().get('error') == 1:
-        error_data_set.append(
-            data_set.pop(rand_int)
-        )
-    else:
-        if data_set[rand_int].get('link'):
-            data_set.pop(rand_int)
+# auth
+data_set[2].get('func')()
 
-            # work with linked elements
-            while_pass = True
-            while while_pass:
-                for_while_pass = 0
-                for i in range(len(data_set)):
-                    if data_set[i].get('link'):
-                        for_while_pass += 1
-                        data_set.pop(i).get('func')()
-                        break
+# search
+data_set[3].get('func')()
 
-                if for_while_pass == 0:
-                    while_pass = False
-                    browser.back_to_main()
+# site
+data_set[4].get('func')()
 
-            # work with error's elements
-            for i in error_data_set:
-                i.get('func')()
+# phone
+data_set[5].get('func')()
 
-        else:
-            data_set.pop(rand_int).get('number')
+# route
+data_set[6].get('func')()
 
-    # control length of a_a
-    if len(data_set) == 0:
-        logic = False
+# photo and reviews
+data_set[0].get('func')()
+data_set[1].get('func')()
 
 
 print('the end')
 input()
+browser.driver.close()
