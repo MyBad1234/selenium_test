@@ -17,8 +17,8 @@ try:
     browser.company_found = True
 
     # get keyword and company
-    my_company = input()
-    my_keywords = input()
+    my_company = 'Плюс Ай Ти'
+    my_keywords = 'Рекламное агенство'
 
 except IndexError:
     print('error of arguments')
@@ -136,9 +136,12 @@ def phone_func():
 def route_func():
     """func for making route"""
 
-    route_obj = RouteYandex(browser, 'Воронеж', 'Плюс Ай Ти')
+    route_obj = RouteYandex(browser, my_keywords, my_company)
     route_obj.make_route()
     route_obj.input_text()
+
+    company_btn = route_obj.scroll_results()
+    company_btn.click()
 
     print('route_func')
     return {
@@ -207,5 +210,5 @@ data_set[1].get('func')()
 
 
 print('the end')
-input()
+
 browser.driver.close()

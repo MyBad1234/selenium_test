@@ -2,7 +2,6 @@ import time
 
 from selenium import webdriver
 from selenium.common import exceptions
-from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -279,6 +278,14 @@ class SearchCompanyYandex:
         # input text
         for i in range(10):
             text_box_input = self.browser.driver.find_element(by=By.CSS_SELECTOR, value="input")
+
+            # clear value of input
+            input_text = self.browser.driver.execute_script(
+                "return document.querySelector('input').value"
+            )
+            for j in input_text:
+                text_box_input.send_keys("\ue003")
+
             try:
                 text_box_input.send_keys(
                     self.keyword
@@ -301,11 +308,13 @@ class SearchCompanyYandex:
         # run scripts
         for_while = True
         while for_while:
-            time.sleep(3)
-            self.browser.driver.execute_script("document \
+            time.sleep(2)
+            self.browser.driver.execute_script("document.querySelector('.scroll__container') \
+                .scrollTo({top: document \
                 .querySelector('.scroll__container') \
-                .scrollTo(0, document.querySelector('.scroll__container') \
-                .scrollHeight)")
+                .scrollHeight, behavior: 'smooth'})")
+
+            time.sleep(1)
 
             scroll_height = self.browser.driver.execute_script(
                 "return document.querySelector('.scroll__container').scrollHeight"
@@ -319,11 +328,11 @@ class SearchCompanyYandex:
 
             # control elem
             condition = self.browser.driver.execute_script("let company; let condition = false; \
-                for (let i of document.querySelectorAll('.search-snippet-view')) { \
-                for (let j of i.querySelectorAll('div')) { \
-                if (j.innerText === '" + self.company + "') { \
-                company = i; condition = true }}} \
-                if (condition) { company.scrollIntoView({block: 'center'}; return 'yes' } else { return 'no' }")
+            for (let i of document.querySelectorAll('.search-snippet-view')) { \
+            for (let j of i.querySelectorAll('div')) { if (j.innerText === '" + self.company + "') \
+            { company = i; condition = true }}} if (condition) \
+            { company.scrollIntoView({behavior: 'smooth', block: 'center'}); \
+            return 'yes' } else { return 'no' }")
 
             if condition == 'yes':
                 for_while = False
