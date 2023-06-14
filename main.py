@@ -1,5 +1,6 @@
 import os
 import sys
+import pika
 import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
@@ -7,29 +8,8 @@ from components import (
     RouteYandex, PhoneYandex, ModeException
 )
 
-try:
-    argument = sys.argv[1]
 
-    browser = Browser(mode=argument)
-    browser.driver.get(
-        url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
-    )
-    browser.company_found = True
-
-    # get keyword and company
-    my_company = 'Плюс Ай Ти'
-    my_keywords = 'Рекламное агенство'
-
-except IndexError:
-    print('error of arguments')
-    sys.exit()
-
-except ModeException:
-    print('input correct mode of work for clicker')
-    sys.exit()
-
-
-def photo_func():
+def photo_func(browser):
     """work with photo"""
 
     photo_obj = YandexPhoto(browser)
@@ -49,7 +29,7 @@ def photo_func():
     }
 
 
-def review_func():
+def review_func(browser):
     """work with review"""
 
     review_obj = YandexReviews(browser)
@@ -68,7 +48,7 @@ def review_func():
     }
 
 
-def auth_func():
+def auth_func(browser):
     """work with auth"""
 
     auth_obj = YandexAuth(browser)
@@ -83,7 +63,7 @@ def auth_func():
     }
 
 
-def search_func():
+def search_func(browser, my_keywords, my_company):
     """work with search company in yandex maps"""
 
     search_obj = SearchCompanyYandex(
@@ -107,7 +87,7 @@ def search_func():
     }
 
 
-def site_func():
+def site_func(browser):
     """func for visit site"""
 
     site_obj = CompanySiteYandex(browser=browser)
@@ -120,7 +100,7 @@ def site_func():
     }
 
 
-def phone_func():
+def phone_func(browser):
     """func for see phone"""
 
     phone_obj = PhoneYandex(browser)
@@ -133,7 +113,7 @@ def phone_func():
     }
 
 
-def route_func():
+def route_func(browser, my_keywords, my_company):
     """func for making route"""
 
     route_obj = RouteYandex(browser, my_keywords, my_company)
@@ -186,29 +166,86 @@ data_set = [
         'link': False
     }
 ]
-error_data_set = []
 
 
-# auth
-# data_set[2].get('func')()
+def callback():
+    argument = sys.argv[1]
 
-# search
-data_set[3].get('func')()
+    browser = Browser(mode=argument)
+    browser.driver.get(
+        url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
+    )
+    browser.company_found = True
 
-# site
-data_set[4].get('func')()
+    # get keyword and company
+    my_company = 'Плюс Ай Ти'
+    my_keywords = 'Рекламное агенство'
 
-# phone
-data_set[5].get('func')()
+    # auth
+    # data_set[2].get('func')()
 
-# route
-data_set[6].get('func')()
+    # search
+    data_set[3].get('func')(browser, my_keywords, my_company)
 
-# photo and reviews
-data_set[0].get('func')()
-data_set[1].get('func')()
+    # site
+    data_set[4].get('func')(browser)
+
+    # phone
+    data_set[5].get('func')(browser)
+
+    # route
+    data_set[6].get('func')(browser, my_keywords, my_company)
+
+    # photo and reviews
+    data_set[0].get('func')(browser)
+    data_set[1].get('func')(browser)
+
+    print('the end')
+
+    browser.driver.close()
 
 
-print('the end')
+def main():
+    # set params
+    credentials = pika.PlainCredentials(
+        username=os.environ.get('RABBITMQ_USERNAME'),
+        password=os.environ.get('RABBITMQ_PASSWORD')
+    )
+    parameters = pika.ConnectionParameters(
+        host=os.environ.get('RABBITMQ_HOST'),
+        port=8080,
+        virtual_host='my_vhost',
+        credentials=credentials,
+        connection_attempts=10,
+        retry_delay=10
+    )
+    connection = pika.BlockingConnection(parameters)
 
-browser.driver.close()
+    # make connection
+    channel = connection.channel()
+    channel.queue_declare(queue='hello')
+
+    # set func to queue
+    channel.basic_consume(queue='hello', on_message_callback=callback, auto_ack=True)
+
+    # start
+    channel.start_consuming()
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        try:
+            sys.exit()
+        except SystemExit:
+            sys.exit()
+
+    except IndexError:
+        print('error of arguments')
+        sys.exit()
+
+    except ModeException:
+        print('input correct mode of work for clicker')
+        sys.exit()

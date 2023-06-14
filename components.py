@@ -441,7 +441,7 @@ class RouteYandex(SearchCompanyYandex):
 
         button = None
         for i in menu_elements:
-            if i.accessible_name == action_name:
+            if i.text == action_name:
                 button = i
 
         # if browser not find button
