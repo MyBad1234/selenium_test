@@ -5,9 +5,18 @@ from selenium.common import exceptions
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class CompanyException(Exception):
+    pass
+
+
+class ModeException(Exception):
+    pass
+
+
+class AuthException(Exception):
     pass
 
 
@@ -15,9 +24,31 @@ class Browser:
     """class for create webdriver"""
 
     company_found: bool
+    in_windows: bool
 
-    def __init__(self):
-        self.driver = webdriver.Chrome()
+    def __init__(self, mode: str):
+        if mode == 'window':
+            options = webdriver.ChromeOptions()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument("--disable-gpu")
+
+            self.driver = webdriver.Firefox()
+            self.in_windows = True
+        elif mode == 'docker':
+            # set options for browser in background
+            options = FirefoxOptions()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument("--disable-gpu")
+
+            # run background browser
+            self.driver = webdriver.Firefox(
+                options=options
+            )
+            self.in_windows = False
+        else:
+            raise ModeException()
 
     def recursive_func(self, part_name):
 
@@ -189,11 +220,36 @@ class YandexAuth:
             .find_element(by=By.CSS_SELECTOR, value='.passp-sign-in-button') \
             .find_element(by=By.CSS_SELECTOR, value='button')
 
+    def __control_phone_or_mail(self):
+        """start entering mail if the phone dropped out"""
+
+        time.sleep(4)
+
+        login_btns = self.browser.driver \
+            .find_element(by=By.CSS_SELECTOR, value='.AuthLoginInputToggle-wrapper') \
+            .find_elements(by=By.CSS_SELECTOR, value='button')
+
+        # control btns
+        for i in login_btns:
+            i.click()
+
+            # control mask
+            value_input = self.browser.driver.execute_script(
+                "return document.querySelector('.AuthLoginInputToggle-input').querySelector('input').value "
+            )
+            if len(value_input) == 0:
+                return
+
+        raise AuthException()
+
     def auth(self, login, password):
         """use all methods for auth in yandex maps"""
 
         self.__get_menu_btn().click()
         self.__get_enter_btn().click()
+
+        # control mail or phone
+        self.__control_phone_or_mail()
 
         # work with opened form
         self.__input_text(login)
@@ -201,8 +257,6 @@ class YandexAuth:
 
         self.__input_text(text=password, selector='input[type="password"]')
         self.__get_push_login_btn().click()
-
-        input()
 
 
 class SearchCompanyYandex:

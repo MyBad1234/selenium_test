@@ -1,3 +1,4 @@
+import os
 import sys
 import random
 from components import (
@@ -68,8 +69,8 @@ def auth_func():
 
     auth_obj = YandexAuth(browser)
     auth_obj.auth(
-        login='y4ndex.genag4448@yandex.ru',
-        password='Kkq-MUv-rSw-3zv-!@#'
+        login=os.environ.get('SELENIUM_USERNAME'),
+        password=os.environ.get('SELENIUM_PASSWORD')
     )
 
     print('auth_func')
