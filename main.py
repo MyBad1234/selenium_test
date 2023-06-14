@@ -16,6 +16,10 @@ try:
     )
     browser.company_found = True
 
+    # get keyword and company
+    my_company = input()
+    my_keywords = input()
+
 except IndexError:
     print('error of arguments')
     sys.exit()
@@ -84,8 +88,8 @@ def search_func():
 
     search_obj = SearchCompanyYandex(
         browser=browser,
-        keyword='Воронеж',
-        company='Плюс Ай Ти'
+        keyword=my_keywords,
+        company=my_company
     )
     search_obj.input_text()
 
@@ -183,7 +187,7 @@ error_data_set = []
 
 
 # auth
-data_set[2].get('func')()
+# data_set[2].get('func')()
 
 # search
 data_set[3].get('func')()

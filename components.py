@@ -20,6 +20,10 @@ class AuthException(Exception):
     pass
 
 
+class CompanyNotFound(Exception):
+    pass
+
+
 class Browser:
     """class for create webdriver"""
 
@@ -278,8 +282,6 @@ class SearchCompanyYandex:
             try:
                 text_box_input.send_keys(
                     self.keyword
-                    + "\ue00d"
-                    + self.company
                     + "\ue007"
                 )
                 return
@@ -292,23 +294,56 @@ class SearchCompanyYandex:
     def scroll_results(self):
         """view all results and search"""
 
-        # control: open company or list of company
-        elements = self.browser.driver.find_elements(by=By.CSS_SELECTOR, value='.search-snippet-view')
-        if len(elements) == 0:
-            raise CompanyException()
+        time.sleep(3)
+
+        now_height = 0
+
+        # run scripts
+        for_while = True
+        while for_while:
+            time.sleep(3)
+            self.browser.driver.execute_script("document \
+                .querySelector('.scroll__container') \
+                .scrollTo(0, document.querySelector('.scroll__container') \
+                .scrollHeight)")
+
+            scroll_height = self.browser.driver.execute_script(
+                "return document.querySelector('.scroll__container').scrollHeight"
+            )
+
+            # control scroll
+            if scroll_height == now_height:
+                for_while = False
+            else:
+                now_height = scroll_height
+
+            # control elem
+            condition = self.browser.driver.execute_script("let company; let condition = false; \
+                for (let i of document.querySelectorAll('.search-snippet-view')) { \
+                for (let j of i.querySelectorAll('div')) { \
+                if (j.innerText === '" + self.company + "') { \
+                company = i; condition = true }}} \
+                if (condition) { company.scrollIntoView({block: 'center'}; return 'yes' } else { return 'no' }")
+
+            if condition == 'yes':
+                for_while = False
+            else:
+                if not for_while:
+                    raise CompanyNotFound()
 
         time.sleep(3)
-        self.browser.driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 10000)")
 
         # if list of company
+        elements = self.browser.driver.find_elements(
+            by=By.CSS_SELECTOR,
+            value='.search-snippet-view'
+        )
+
         card = None
         for i in elements:
             for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
                 if j.text == self.company:
                     card = j
-                    ActionChains(self.browser.driver) \
-                        .scroll_to_element(card) \
-                        .perform()
 
         return card
 
