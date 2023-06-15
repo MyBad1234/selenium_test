@@ -5,11 +5,31 @@ services:
     container_name: mysql_clicker
     build:
       context: ./modules/db
+    healthcheck:
+      test: ["cmd", "mysqladmin", "-h", "localhost"]
+
   web:
     container_name: web_page
     build:
       context: ./modules/web
     ports:
-      - 8000:8000
+      - 8001:8000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    command: sh -c "gunicorn web.wsgi -- workers 4 --bind 0.0.0.0:8000"
+
+  rabbitmq:
+    container_name: rabbitmq_clicker
+    image: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_VHOST=my_vhost
+
+  selenium:
+    container_name: clicker
+    build:
+      context: .
+    depends_on:
+      - rabbitmq

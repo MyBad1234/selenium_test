@@ -1,6 +1,7 @@
 import os
 import sys
 import pika
+import json
 import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
@@ -168,7 +169,10 @@ data_set = [
 ]
 
 
-def callback():
+def callback(ch, method, properties, body):
+    # decode body
+    data_dict = json.loads(body.decode('utf-8'))
+
     argument = sys.argv[1]
 
     browser = Browser(mode=argument)
@@ -178,8 +182,8 @@ def callback():
     browser.company_found = True
 
     # get keyword and company
-    my_company = 'Плюс Ай Ти'
-    my_keywords = 'Рекламное агенство'
+    my_company = data_dict.get('company')
+    my_keywords = data_dict.get('keywords')
 
     # auth
     # data_set[2].get('func')()
@@ -212,9 +216,9 @@ def main():
         password=os.environ.get('RABBITMQ_PASSWORD')
     )
     parameters = pika.ConnectionParameters(
-        host=os.environ.get('RABBITMQ_HOST'),
+        host=os.environ.get('RABBITMQ_HOST', '127.0.0.1'),
         port=8080,
-        virtual_host='my_vhost',
+        virtual_host=os.environ.get('RABBITMQ_VHOST'),
         credentials=credentials,
         connection_attempts=10,
         retry_delay=10
