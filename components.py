@@ -2,12 +2,24 @@ import time
 
 from selenium import webdriver
 from selenium.common import exceptions
-from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class CompanyException(Exception):
+    pass
+
+
+class ModeException(Exception):
+    pass
+
+
+class AuthException(Exception):
+    pass
+
+
+class CompanyNotFound(Exception):
     pass
 
 
@@ -15,9 +27,31 @@ class Browser:
     """class for create webdriver"""
 
     company_found: bool
+    in_windows: bool
 
-    def __init__(self):
-        self.driver = webdriver.Chrome()
+    def __init__(self, mode: str):
+        if mode == 'window':
+            options = webdriver.ChromeOptions()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument("--disable-gpu")
+
+            self.driver = webdriver.Firefox()
+            self.in_windows = True
+        elif mode == 'docker':
+            # set options for browser in background
+            options = FirefoxOptions()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument("--disable-gpu")
+
+            # run background browser
+            self.driver = webdriver.Firefox(
+                options=options
+            )
+            self.in_windows = False
+        else:
+            raise ModeException()
 
     def recursive_func(self, part_name):
 
@@ -30,7 +64,7 @@ class Browser:
         )
 
         # get elements from all carousel
-        photo = None
+        click_elem = None
         for_i = 0
         for_j = 0
         for i in cards_menu:
@@ -43,16 +77,16 @@ class Browser:
 
                 for k in j.find_elements(by=By.CSS_SELECTOR, value='a'):
                     if k.text == part_name:
-                        photo = j
+                        click_elem = j
                         for_i = 1
                         for_j = 1
                         break
 
         # if not found element
-        if photo is None:
+        if click_elem is None:
             raise CompanyException()
 
-        return photo
+        return click_elem
 
     def get_element_from_carousel(self, part_name):
         """get tab from carousel by part_name"""
@@ -189,11 +223,36 @@ class YandexAuth:
             .find_element(by=By.CSS_SELECTOR, value='.passp-sign-in-button') \
             .find_element(by=By.CSS_SELECTOR, value='button')
 
+    def __control_phone_or_mail(self):
+        """start entering mail if the phone dropped out"""
+
+        time.sleep(4)
+
+        login_btns = self.browser.driver \
+            .find_element(by=By.CSS_SELECTOR, value='.AuthLoginInputToggle-wrapper') \
+            .find_elements(by=By.CSS_SELECTOR, value='button')
+
+        # control btns
+        for i in login_btns:
+            i.click()
+
+            # control mask
+            value_input = self.browser.driver.execute_script(
+                "return document.querySelector('.AuthLoginInputToggle-input').querySelector('input').value "
+            )
+            if len(value_input) == 0:
+                return
+
+        raise AuthException()
+
     def auth(self, login, password):
         """use all methods for auth in yandex maps"""
 
         self.__get_menu_btn().click()
         self.__get_enter_btn().click()
+
+        # control mail or phone
+        self.__control_phone_or_mail()
 
         # work with opened form
         self.__input_text(login)
@@ -201,8 +260,6 @@ class YandexAuth:
 
         self.__input_text(text=password, selector='input[type="password"]')
         self.__get_push_login_btn().click()
-
-        input()
 
 
 class SearchCompanyYandex:
@@ -221,11 +278,17 @@ class SearchCompanyYandex:
         # input text
         for i in range(10):
             text_box_input = self.browser.driver.find_element(by=By.CSS_SELECTOR, value="input")
+
+            # clear value of input
+            input_text = self.browser.driver.execute_script(
+                "return document.querySelector('input').value"
+            )
+            for j in input_text:
+                text_box_input.send_keys("\ue003")
+
             try:
                 text_box_input.send_keys(
                     self.keyword
-                    + "\ue00d"
-                    + self.company
                     + "\ue007"
                 )
                 return
@@ -238,23 +301,58 @@ class SearchCompanyYandex:
     def scroll_results(self):
         """view all results and search"""
 
-        # control: open company or list of company
-        elements = self.browser.driver.find_elements(by=By.CSS_SELECTOR, value='.search-snippet-view')
-        if len(elements) == 0:
-            raise CompanyException()
+        time.sleep(3)
+
+        now_height = 0
+
+        # run scripts
+        for_while = True
+        while for_while:
+            time.sleep(2)
+            self.browser.driver.execute_script("document.querySelector('.scroll__container') \
+                .scrollTo({top: document \
+                .querySelector('.scroll__container') \
+                .scrollHeight, behavior: 'smooth'})")
+
+            time.sleep(1)
+
+            scroll_height = self.browser.driver.execute_script(
+                "return document.querySelector('.scroll__container').scrollHeight"
+            )
+
+            # control scroll
+            if scroll_height == now_height:
+                for_while = False
+            else:
+                now_height = scroll_height
+
+            # control elem
+            condition = self.browser.driver.execute_script("let company; let condition = false; \
+            for (let i of document.querySelectorAll('.search-snippet-view')) { \
+            for (let j of i.querySelectorAll('div')) { if (j.innerText === '" + self.company + "') \
+            { company = i; condition = true }}} if (condition) \
+            { company.scrollIntoView({behavior: 'smooth', block: 'center'}); \
+            return 'yes' } else { return 'no' }")
+
+            if condition == 'yes':
+                for_while = False
+            else:
+                if not for_while:
+                    raise CompanyNotFound()
 
         time.sleep(3)
-        self.browser.driver.execute_script("document.querySelector('.scroll__container').scrollTo(0, 10000)")
 
         # if list of company
+        elements = self.browser.driver.find_elements(
+            by=By.CSS_SELECTOR,
+            value='.search-snippet-view'
+        )
+
         card = None
         for i in elements:
             for j in i.find_elements(by=By.CSS_SELECTOR, value='div'):
                 if j.text == self.company:
                     card = j
-                    ActionChains(self.browser.driver) \
-                        .scroll_to_element(card) \
-                        .perform()
 
         return card
 
@@ -343,7 +441,7 @@ class RouteYandex(SearchCompanyYandex):
 
         button = None
         for i in menu_elements:
-            if i.accessible_name == action_name:
+            if i.text == action_name:
                 button = i
 
         # if browser not find button
@@ -357,52 +455,3 @@ class RouteYandex(SearchCompanyYandex):
 
         route_btn = self.__get_action_button('Маршрут')
         route_btn.click()
-
-
-class BookmarkYandex:
-    """click to 'add to bookmark' btn"""
-
-    def __init__(self, browser: Browser):
-        self.browser = browser
-
-    def __get_bookmark_btn(self, action_name):
-        """find bookmark btn and click"""
-
-        time.sleep(5)
-
-        # get btn
-        elems = self.browser.driver \
-            .find_element(by=By.CSS_SELECTOR, value='.business-card-title-view__actions') \
-            .find_elements(by=By.CSS_SELECTOR, value='button')
-
-        button = None
-        for i in elems:
-            print(i.accessible_name)
-            if i.accessible_name == action_name:
-                button = i
-
-        # if browser not find button
-        if button is None:
-            raise ValueError()
-
-        return button
-
-    def __get_close_bookmark(self):
-        """click and close bookmark"""
-
-        return self.browser.driver.find_element(by=By.CSS_SELECTOR, value='.close-button')
-
-    def click_bookmark(self):
-        """click and close bookmark"""
-
-        bookmark_btn = self.__get_bookmark_btn('Закладки')
-
-        # click
-        time.sleep(2)
-        bookmark_btn.click()
-
-        # close
-        close_btn = self.__get_close_bookmark()
-
-        time.sleep(2)
-        close_btn.click()

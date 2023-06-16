@@ -1,19 +1,18 @@
+import os
+import sys
+import time
+
+import pika
+import json
 import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex, BookmarkYandex
+    RouteYandex, PhoneYandex, ModeException
 )
 
 
-browser = Browser()
-browser.driver.get(
-    url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
-)
-browser.company_found = True
-
-
-def photo_func():
+def photo_func(browser):
     """work with photo"""
 
     photo_obj = YandexPhoto(browser)
@@ -33,7 +32,7 @@ def photo_func():
     }
 
 
-def review_func():
+def review_func(browser):
     """work with review"""
 
     review_obj = YandexReviews(browser)
@@ -52,13 +51,13 @@ def review_func():
     }
 
 
-def auth_func():
+def auth_func(browser):
     """work with auth"""
 
     auth_obj = YandexAuth(browser)
     auth_obj.auth(
-        login='y4ndex.genag4448@yandex.ru',
-        password='Kkq-MUv-rSw-3zv-!@#'
+        login=os.environ.get('SELENIUM_USERNAME'),
+        password=os.environ.get('SELENIUM_PASSWORD')
     )
 
     print('auth_func')
@@ -67,13 +66,13 @@ def auth_func():
     }
 
 
-def search_func():
+def search_func(browser, my_keywords, my_company):
     """work with search company in yandex maps"""
 
     search_obj = SearchCompanyYandex(
         browser=browser,
-        keyword='Воронеж',
-        company='Плюс Ай Ти'
+        keyword=my_keywords,
+        company=my_company
     )
     search_obj.input_text()
 
@@ -91,7 +90,7 @@ def search_func():
     }
 
 
-def site_func():
+def site_func(browser):
     """func for visit site"""
 
     site_obj = CompanySiteYandex(browser=browser)
@@ -104,7 +103,7 @@ def site_func():
     }
 
 
-def phone_func():
+def phone_func(browser):
     """func for see phone"""
 
     phone_obj = PhoneYandex(browser)
@@ -117,26 +116,17 @@ def phone_func():
     }
 
 
-def route_func():
+def route_func(browser, my_keywords, my_company):
     """func for making route"""
 
-    route_obj = RouteYandex(browser, 'Воронеж', 'Плюс Ай Ти')
+    route_obj = RouteYandex(browser, my_keywords, my_company)
     route_obj.make_route()
     route_obj.input_text()
 
+    company_btn = route_obj.scroll_results()
+    company_btn.click()
+
     print('route_func')
-    return {
-        'error': 0
-    }
-
-
-def bookmark_func():
-    """func for click to bookmark"""
-
-    bookmark_obj = BookmarkYandex(browser=browser)
-    bookmark_obj.click_bookmark()
-
-    print('bookmark_func')
     return {
         'error': 0
     }
@@ -177,62 +167,61 @@ data_set = [
         'name': 'route',
         'func': route_func,
         'link': False
-    },
-    {
-        'name': 'bookmark',
-        'func': bookmark_func,
-        'link': False
     }
 ]
-error_data_set = []
-
-logic = True
-first = 0
-while logic:
-    # get random elem
-    if first == 0:
-        rand_int = 2
-        first = 1
-    elif first == 1:
-        rand_int = 2
-        first = 2
-    else:
-        rand_int = random.randint(0, len(data_set) - 1)
-
-    # control on error
-    if data_set[rand_int].get('func')().get('error') == 1:
-        error_data_set.append(
-            data_set.pop(rand_int)
-        )
-    else:
-        if data_set[rand_int].get('link'):
-            data_set.pop(rand_int)
-
-            # work with linked elements
-            while_pass = True
-            while while_pass:
-                for_while_pass = 0
-                for i in range(len(data_set)):
-                    if data_set[i].get('link'):
-                        for_while_pass += 1
-                        data_set.pop(i).get('func')()
-                        break
-
-                if for_while_pass == 0:
-                    while_pass = False
-                    browser.back_to_main()
-
-            # work with error's elements
-            for i in error_data_set:
-                i.get('func')()
-
-        else:
-            data_set.pop(rand_int).get('number')
-
-    # control length of a_a
-    if len(data_set) == 0:
-        logic = False
 
 
-print('the end')
-input()
+def get_data_from_query():
+    query_task = ("SELECT `id`,`entity_id`,`resource_id`,`status_id`, `updated` "
+             "FROM `queue` WHERE `type_id` = 10 AND `status_id` = 1 "
+             "ORDER BY id LIMIT 1")
+
+
+def main():
+    # decode body
+    argument = sys.argv[1]
+
+    browser = Browser(mode=argument)
+    browser.driver.get(
+        url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
+    )
+    browser.company_found = True
+
+    # get keyword and company
+    my_company = input()
+    my_keywords = input()
+
+    # auth
+    # data_set[2].get('func')()
+
+    # search
+    data_set[3].get('func')(browser, my_keywords, my_company)
+
+    # site
+    data_set[4].get('func')(browser)
+
+    # phone
+    data_set[5].get('func')(browser)
+
+    # route
+    data_set[6].get('func')(browser, my_keywords, my_company)
+
+    # photo and reviews
+    data_set[0].get('func')(browser)
+    data_set[1].get('func')(browser)
+
+    print('the end')
+
+    browser.driver.close()
+
+    time.sleep(120)
+
+
+
+
+if __name__ == '__main__':
+    try:
+        while True:
+            main()
+    except KeyboardInterrupt:
+        sys.exit()
