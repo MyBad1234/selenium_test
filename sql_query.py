@@ -121,17 +121,37 @@ class SqlQuery:
 
         self.cnx.commit()
 
-
-
-    def update_status_task_other(self, queue_id, time):
-        """update status of clicker"""
-
-        query = "UPDATE `queue_user_imitation_yandex` SET `status_id` = 2 WHERE `queue_id` = %s"
+        # test
+        test_query = ("SELECT `status_id`, `updated` FROM queue "
+                      "WHERE `id` = %s")
 
         cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (str(queue_id),))
+        cursor.execute(test_query, (task_id, ))
+
+        for i in cursor:
+            print(i)
+
+    def update_status_task_other(self, queue_id, status, time):
+        """update status of clicker"""
+
+        query = ("UPDATE `queue_user_imitation_yandex` "
+                 "SET `status_id` = %s, `updated` = %s"
+                 " WHERE `queue_id` = %s")
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(query, (status, time, queue_id))
 
         self.cnx.commit()
+
+        # test
+        test_query = ("SELECT `status_id`, `updated` FROM queue_user_imitation_yandex "
+                      "WHERE `queue_id` = %s")
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(test_query, (queue_id, ))
+
+        for i in cursor:
+            print(i)
 
     def update_stage_task_other(self, queue_id, time, stage):
         """update stage of clicker"""

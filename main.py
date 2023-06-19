@@ -196,7 +196,7 @@ def main():
             )
 
             sql_obj.update_status_task_other(
-                queue_id=task.get('id_queue'),
+                queue_id=task.get('id_queue'), status=1,
                 time=str(os.environ.get('TIME_WINDOWS'))
             )
 
