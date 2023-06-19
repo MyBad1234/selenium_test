@@ -6,7 +6,7 @@ import datetime
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex, ModeException
+    RouteYandex, PhoneYandex, ModeException, CompanyNotFound
 )
 from sql_query import SqlQuery, TaskMissingException
 
@@ -204,9 +204,15 @@ def main():
         argument = sys.argv[1]
 
         browser = Browser(mode=argument)
-        browser.driver.get(
-            url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
-        )
+
+        # generate url and open it
+        url: str = "https://yandex.ru/maps/193/voronezh/?ll="
+        url += task.get('x')
+        url += '%2C'
+        url += task.get('y')
+        url += '&z=16.06'
+
+        browser.driver.get(url=url)
         browser.company_found = True
 
         # get keyword and company
@@ -217,6 +223,17 @@ def main():
         # data_set[2].get('func')()
 
         # search
+        try:
+            sql_obj.update_stage_task_other(
+                queue_id=task.get('id'), stage='search',
+                time=datetime.datetime.now().strftime('%s')
+            )
+        except ValueError:
+            sql_obj.update_stage_task_other(
+                queue_id=task.get('id_queue'), stage='search',
+                time=str(os.environ.get('TIME_WINDOWS'))
+            )
+
         data_set[3].get('func')(browser, my_keywords, my_company)
 
         # site
@@ -240,6 +257,28 @@ def main():
 
     except TaskMissingException:
         time.sleep(600)
+
+    except CompanyNotFound:
+        try:
+            sql_obj.update_status_task(
+                task_id=task.get('id_queue'), status='4',
+                time=datetime.datetime.now().strftime('%s')
+            )
+
+            sql_obj.update_status_task_other(
+                queue_id=task.get('id_queue'), status=3,
+                time=datetime.datetime.now().strftime('%s')
+            )
+        except ValueError:
+            sql_obj.update_status_task(
+                task_id=task.get('id_queue'), status='4',
+                time=str(os.environ.get('TIME_WINDOWS'))
+            )
+
+            sql_obj.update_status_task_other(
+                queue_id=task.get('id_queue'), status=3,
+                time=str(os.environ.get('TIME_WINDOWS'))
+            )
 
 
 

@@ -1,4 +1,5 @@
 import os
+import json
 import mysql
 from mysql.connector.connection_cext import CMySQLCursor, CMySQLConnection
 
@@ -86,7 +87,9 @@ class SqlQuery:
         data = None
         for i in cursor:
             data = {
-                'name': i[1]
+                'name': i[1],
+                'x': i[3],
+                'y': i[2]
             }
 
         if data is None:
@@ -121,16 +124,6 @@ class SqlQuery:
 
         self.cnx.commit()
 
-        # test
-        test_query = ("SELECT `status_id`, `updated` FROM queue "
-                      "WHERE `id` = %s")
-
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(test_query, (task_id, ))
-
-        for i in cursor:
-            print(i)
-
     def update_status_task_other(self, queue_id, status, time):
         """update status of clicker"""
 
@@ -142,16 +135,6 @@ class SqlQuery:
         cursor.execute(query, (status, time, queue_id))
 
         self.cnx.commit()
-
-        # test
-        test_query = ("SELECT `status_id`, `updated` FROM queue_user_imitation_yandex "
-                      "WHERE `queue_id` = %s")
-
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(test_query, (queue_id, ))
-
-        for i in cursor:
-            print(i)
 
     def update_stage_task_other(self, queue_id, time, stage):
         """update stage of clicker"""
@@ -165,13 +148,15 @@ class SqlQuery:
         # add new stage for log
         log_stage = None
         for i in cursor:
-            log_stage = i[0]
+            if i[0] is None:
+                log_stage = {}
+            else:
+                log_stage = json.loads(i[0])
 
         if log_stage is None:
             raise DataStructException()
 
-        log_stage += " "
-        log_stage += stage
+        log_stage['photo'] = True
 
         # query for update stage
         update_query = ("UPDATE `queue_user_imitation_yandex` "
@@ -179,7 +164,7 @@ class SqlQuery:
                         "WHERE `queue_id` = %s")
 
         cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(update_query, (log_stage, time, queue_id))
+        cursor.execute(update_query, (json.dumps(log_stage), time, queue_id))
 
         self.cnx.commit()
 
@@ -198,5 +183,7 @@ class SqlQuery:
         return {
             'keywords': keywords_coordinates.get('keyword'),
             'company': name.get('name'),
-            'id_queue': task.get('id')
+            'id_queue': task.get('id'),
+            'x': name.get('x'),
+            'y': name.get('y')
         }
