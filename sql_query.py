@@ -78,7 +78,7 @@ class SqlQuery:
         """get company for search"""
 
         query = ("SELECT `yandex_id`,`name`,`latitude`,`longitude` "
-                 "FROM `itemcampagin` WHERE `id` = entity_id")
+                 "FROM `itemcampagin` WHERE `id` = %s")
 
         cursor: CMySQLCursor = self.cnx.cursor()
         cursor.execute(query, (str(entity_id),))
@@ -93,6 +93,15 @@ class SqlQuery:
             raise DataStructException()
 
         return data
+
+    def __get_second_task(self, ):
+        """find the child element of the task"""
+
+        query = ("SELECT `status_id`,`result`,`updated` FROM `queue_user_imitation_yandex` "
+                "WHERE `queue_id` = id")
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(query)
 
     def test(self):
         query = "UPDATE `queue` SET `status_id` = 1 WHERE`type_id` = 10"
@@ -112,8 +121,10 @@ class SqlQuery:
 
         self.cnx.commit()
 
-    def update_status_task_other(self, queue_id):
-        """the end of task"""
+
+
+    def update_status_task_other(self, queue_id, time):
+        """update status of clicker"""
 
         query = "UPDATE `queue_user_imitation_yandex` SET `status_id` = 2 WHERE `queue_id` = %s"
 
@@ -121,6 +132,37 @@ class SqlQuery:
         cursor.execute(query, (str(queue_id),))
 
         self.cnx.commit()
+
+    def update_stage_task_other(self, queue_id, time, stage):
+        """update stage of clicker"""
+
+        select_query = ("SELECT `result` FROM queue_user_imitation_yandex "
+                        "WHERE `queue_id` = %s")
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(select_query, (str(queue_id),))
+
+        # add new stage for log
+        log_stage = None
+        for i in cursor:
+            log_stage = i[0]
+
+        if log_stage is None:
+            raise DataStructException()
+
+        log_stage += " "
+        log_stage += stage
+
+        # query for update stage
+        update_query = ("UPDATE `queue_user_imitation_yandex` "
+                        "SET `result` = %s , `updated` = %s "
+                        "WHERE `queue_id` = %s")
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(update_query, (log_stage, time, queue_id))
+
+        self.cnx.commit()
+
 
     def get_data(self):
         """get all data from requests to db"""
@@ -135,5 +177,6 @@ class SqlQuery:
 
         return {
             'keywords': keywords_coordinates.get('keyword'),
-            'company': name.get('name')
+            'company': name.get('name'),
+            'id_queue': task.get('id')
         }

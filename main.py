@@ -176,27 +176,29 @@ def main():
         sql_obj.test()
 
         # get new task
-        task = sql_obj.get_new_task()
+        task = sql_obj.get_data()
 
         # set new status for this task (in work)
         try:
             sql_obj.update_status_task(
-                task_id=task.get('id'), status='2',
+                task_id=task.get('id_queue'), status='2',
+                time=datetime.datetime.now().strftime('%s')
+            )
+
+            sql_obj.update_status_task_other(
+                queue_id=task.get('id_queue'),
                 time=datetime.datetime.now().strftime('%s')
             )
         except ValueError:
             sql_obj.update_status_task(
-                task_id=112707, status='2',
-                time='1687156948'
+                task_id=task.get('id_queue'), status='2',
+                time=str(os.environ.get('TIME_WINDOWS'))
             )
 
-        # get coordinates
-        keywords_coordinates = sql_obj.get_keywords_coordinates(
-            resource_id=task.get('resource_id')
-        )
-        name = sql_obj.get_company(
-            entity_id=task.get('entity_id')
-        )
+            sql_obj.update_status_task_other(
+                queue_id=task.get('id_queue'),
+                time=str(os.environ.get('TIME_WINDOWS'))
+            )
 
         # decode body
         argument = sys.argv[1]
@@ -208,8 +210,8 @@ def main():
         browser.company_found = True
 
         # get keyword and company
-        my_company = input()
-        my_keywords = input()
+        my_company = task.get('company')
+        my_keywords = task.get('keywords')
 
         # auth
         # data_set[2].get('func')()
