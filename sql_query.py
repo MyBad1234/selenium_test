@@ -29,7 +29,7 @@ class SqlQuery:
 
         self.cnx: CMySQLConnection = mysql.connector.connect(**connect_data)
 
-    def get_new_task(self):
+    def __get_new_task(self):
         """get task or make exception"""
 
         query = ("SELECT `id`,`entity_id`,`resource_id`,`status_id`, `updated` "
@@ -45,7 +45,8 @@ class SqlQuery:
             data = {
                 'id': i[0],
                 'resource_id': i[2],
-                'status_id': i[3]
+                'status_id': i[3],
+                'entity_id': i[1]
             }
 
         if data is None:
@@ -53,15 +54,7 @@ class SqlQuery:
 
         return data
 
-    def update_status_task(self, status_id):
-        """inform the database that the task is being completed"""
-
-        query = "UPDATE `queue` SET `status_id` = 2 WHERE `id` = %s"
-
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (str(status_id), ))
-
-    def get_keywords_coordinates(self, resource_id):
+    def __get_keywords_coordinates(self, resource_id):
         """get keywords and coordinates for task"""
 
         query = ("SELECT `keyword`,`coordinates` FROM `user_imitation_yandex` WHERE `id` = %s")
@@ -81,14 +74,14 @@ class SqlQuery:
 
         return data
 
-    def get_company(self, task_id):
+    def __get_company(self, entity_id):
         """get company for search"""
 
         query = ("SELECT `yandex_id`,`name`,`latitude`,`longitude` "
                  "FROM `itemcampagin` WHERE `id` = entity_id")
 
         cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (str(task_id),))
+        cursor.execute(query, (str(entity_id),))
 
         data = None
         for i in cursor:
@@ -101,6 +94,24 @@ class SqlQuery:
 
         return data
 
+    def test(self):
+        query = "UPDATE `queue` SET `status_id` = 1 WHERE`type_id` = 10"
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(query)
+
+        self.cnx.commit()
+
+    def update_status_task(self, task_id, status, time):
+        """inform the database that the task is being completed"""
+
+        query = "UPDATE `queue` SET `status_id` = %s, `updated` = %s WHERE `id` = %s"
+
+        cursor: CMySQLCursor = self.cnx.cursor()
+        cursor.execute(query, (status, time, task_id))
+
+        self.cnx.commit()
+
     def update_status_task_other(self, queue_id):
         """the end of task"""
 
@@ -108,3 +119,21 @@ class SqlQuery:
 
         cursor: CMySQLCursor = self.cnx.cursor()
         cursor.execute(query, (str(queue_id),))
+
+        self.cnx.commit()
+
+    def get_data(self):
+        """get all data from requests to db"""
+
+        task = self.__get_new_task()
+        keywords_coordinates = self.__get_keywords_coordinates(
+            task.get('resource_id')
+        )
+        name = self.__get_company(
+            task.get('entity_id')
+        )
+
+        return {
+            'keywords': keywords_coordinates.get('keyword'),
+            'company': name.get('name')
+        }

@@ -1,15 +1,14 @@
 import os
 import sys
 import time
+import datetime
 
-import pika
-import json
-import random
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
     RouteYandex, PhoneYandex, ModeException
 )
+from sql_query import SqlQuery, TaskMissingException
 
 
 def photo_func(browser):
@@ -171,51 +170,74 @@ data_set = [
 ]
 
 
-def get_data_from_query():
-    query_task = ("SELECT `id`,`entity_id`,`resource_id`,`status_id`, `updated` "
-             "FROM `queue` WHERE `type_id` = 10 AND `status_id` = 1 "
-             "ORDER BY id LIMIT 1")
-
-
 def main():
-    # decode body
-    argument = sys.argv[1]
+    try:
+        sql_obj = SqlQuery()
+        sql_obj.test()
 
-    browser = Browser(mode=argument)
-    browser.driver.get(
-        url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
-    )
-    browser.company_found = True
+        # get new task
+        task = sql_obj.get_new_task()
 
-    # get keyword and company
-    my_company = input()
-    my_keywords = input()
+        # set new status for this task (in work)
+        try:
+            sql_obj.update_status_task(
+                task_id=task.get('id'), status='2',
+                time=datetime.datetime.now().strftime('%s')
+            )
+        except ValueError:
+            sql_obj.update_status_task(
+                task_id=112707, status='2',
+                time='1687156948'
+            )
 
-    # auth
-    # data_set[2].get('func')()
+        # get coordinates
+        keywords_coordinates = sql_obj.get_keywords_coordinates(
+            resource_id=task.get('resource_id')
+        )
+        name = sql_obj.get_company(
+            entity_id=task.get('entity_id')
+        )
 
-    # search
-    data_set[3].get('func')(browser, my_keywords, my_company)
+        # decode body
+        argument = sys.argv[1]
 
-    # site
-    data_set[4].get('func')(browser)
+        browser = Browser(mode=argument)
+        browser.driver.get(
+            url="https://yandex.ru/maps/193/voronezh/?ll=39.198713%2C51.633190&z=16.06"
+        )
+        browser.company_found = True
 
-    # phone
-    data_set[5].get('func')(browser)
+        # get keyword and company
+        my_company = input()
+        my_keywords = input()
 
-    # route
-    data_set[6].get('func')(browser, my_keywords, my_company)
+        # auth
+        # data_set[2].get('func')()
 
-    # photo and reviews
-    data_set[0].get('func')(browser)
-    data_set[1].get('func')(browser)
+        # search
+        data_set[3].get('func')(browser, my_keywords, my_company)
 
-    print('the end')
+        # site
+        data_set[4].get('func')(browser)
 
-    browser.driver.close()
+        # phone
+        data_set[5].get('func')(browser)
 
-    time.sleep(120)
+        # route
+        data_set[6].get('func')(browser, my_keywords, my_company)
 
+        # photo and reviews
+        data_set[0].get('func')(browser)
+        data_set[1].get('func')(browser)
+
+        print('the end')
+
+        browser.driver.quit()
+
+        time.sleep(120)
+
+    except TaskMissingException:
+        time.sleep(600)
 
 
 
