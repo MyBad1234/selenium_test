@@ -61,7 +61,7 @@ class SqlOrm:
             self.repeat_connect += 1
 
             # repeat select query
-            return self.select_query(query, arguments)
+            return self._select_query(query, arguments)
 
         # if connection is good
         self.repeat_connect = 0
@@ -97,7 +97,7 @@ class SqlOrm:
             self.repeat_connect += 1
 
             # repeat select query
-            self.select_query(query, arguments)
+            self._update_query(query, arguments)
 
 
 class SqlQuery(SqlOrm):
@@ -171,23 +171,23 @@ class SqlQuery(SqlOrm):
 
         return data
 
-    def update_status_task(self, task_id, status, unix_time):
+    def update_status_task(self, task_id, status):
         """inform the database that the task is being completed"""
 
         query = "UPDATE `queue` SET `status_id` = %s, `updated` = %s WHERE `id` = %s"
 
-        super()._update_query(query, (status, unix_time, task_id))
+        super()._update_query(query, (status, str(int(time.time())), task_id))
 
-    def update_status_task_other(self, queue_id, status, unix_time):
+    def update_status_task_other(self, queue_id, status):
         """update status of clicker"""
 
         query = ("UPDATE `queue_user_imitation_yandex` "
                  "SET `status_id` = %s, `updated` = %s"
                  " WHERE `queue_id` = %s")
 
-        super()._update_query(query, (status, unix_time, queue_id))
+        super()._update_query(query, (status, str(int(time.time())), queue_id))
 
-    def update_stage_task_other(self, queue_id, unix_time, stage):
+    def update_stage_task_other(self, queue_id, stage):
         """update stage of clicker"""
 
         select_query = ("SELECT `result` FROM queue_user_imitation_yandex "
@@ -215,7 +215,9 @@ class SqlQuery(SqlOrm):
                         "SET `result` = %s , `updated` = %s "
                         "WHERE `queue_id` = %s")
 
-        super()._update_query(update_query, (json.dumps(log_stage), unix_time, queue_id))
+        super()._update_query(
+            update_query, (json.dumps(log_stage), str(int(time.time())), queue_id)
+        )
 
     def get_data(self):
         """get all data from requests to db"""

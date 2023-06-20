@@ -179,26 +179,14 @@ def main():
         task = sql_obj.get_data()
 
         # set new status for this task (in work)
-        try:
-            sql_obj.update_status_task(
-                task_id=task.get('id_queue'), status='2',
-                time=datetime.datetime.now().strftime('%s')
-            )
+        sql_obj.update_status_task(
+            task_id=task.get('id_queue'), status='2',
+        )
 
-            sql_obj.update_status_task_other(
-                queue_id=task.get('id_queue'),
-                time=datetime.datetime.now().strftime('%s')
-            )
-        except ValueError:
-            sql_obj.update_status_task(
-                task_id=task.get('id_queue'), status='2',
-                time=str(os.environ.get('TIME_WINDOWS'))
-            )
+        sql_obj.update_status_task_other(
+            queue_id=task.get('id_queue'),
+        )
 
-            sql_obj.update_status_task_other(
-                queue_id=task.get('id_queue'), status=1,
-                time=str(os.environ.get('TIME_WINDOWS'))
-            )
 
         # decode body
         argument = sys.argv[1]
