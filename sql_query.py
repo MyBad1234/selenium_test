@@ -187,7 +187,7 @@ class SqlQuery(SqlOrm):
 
         super()._update_query(query, (status, str(int(time.time())), queue_id))
 
-    def update_stage_task_other(self, queue_id, stage):
+    def update_stage_task_other(self, queue_id, stage, status=True):
         """update stage of clicker"""
 
         select_query = ("SELECT `result` FROM queue_user_imitation_yandex "
@@ -208,7 +208,7 @@ class SqlQuery(SqlOrm):
         if log_stage is None:
             raise DataStructException()
 
-        log_stage[stage] = True
+        log_stage[stage] = status
 
         # query for update stage
         update_query = ("UPDATE `queue_user_imitation_yandex` "

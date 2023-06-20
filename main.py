@@ -7,7 +7,8 @@ import datetime
 from components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex, ModeException, CompanyNotFound
+    RouteYandex, PhoneYandex, ModeException, CompanyNotFound,
+    CoordinatesException
 )
 from sql_query import SqlQuery, TaskMissingException
 
@@ -187,14 +188,16 @@ def main():
             queue_id=task.get('id_queue'), status='1'
         )
 
-
         # decode body
         argument = sys.argv[1]
 
         browser = Browser(mode=argument)
 
         # generate url and open it
-        url: str = "https://yandex.ru/maps/193/voronezh/?ll="
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='coordinates'
+        )
+        url: str = "https://yandex.ru/maps/?ll="
         url += task.get('x')
         url += '%2C'
         url += task.get('y')
@@ -271,6 +274,16 @@ def main():
 
         sql_obj.update_status_task_other(
             queue_id=task.get('id_queue'), status=3,
+        )
+
+    except CoordinatesException:
+        sql_obj.update_status_task(
+            task_id=task.get('id_queue'), status='4'
+        )
+
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='coordinates',
+            status=False
         )
 
 

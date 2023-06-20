@@ -15,6 +15,10 @@ class ModeException(Exception):
     pass
 
 
+class CoordinatesException(Exception):
+    pass
+
+
 class AuthException(Exception):
     pass
 
