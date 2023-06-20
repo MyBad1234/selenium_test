@@ -184,7 +184,7 @@ def main():
         )
 
         sql_obj.update_status_task_other(
-            queue_id=task.get('id_queue'),
+            queue_id=task.get('id_queue'), status='1'
         )
 
 
@@ -211,63 +211,67 @@ def main():
         # data_set[2].get('func')()
 
         # search
-        try:
-            sql_obj.update_stage_task_other(
-                queue_id=task.get('id'), stage='search',
-                time=datetime.datetime.now().strftime('%s')
-            )
-        except ValueError:
-            sql_obj.update_stage_task_other(
-                queue_id=task.get('id_queue'), stage='search',
-                time=str(os.environ.get('TIME_WINDOWS'))
-            )
-
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='search'
+        )
         data_set[3].get('func')(browser, my_keywords, my_company)
 
         # site
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='site'
+        )
         data_set[4].get('func')(browser)
 
         # phone
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='phone'
+        )
         data_set[5].get('func')(browser)
 
         # route
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='route'
+        )
         data_set[6].get('func')(browser, my_keywords, my_company)
 
         # photo and reviews
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='photo'
+        )
         data_set[0].get('func')(browser)
+
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='reviews'
+        )
         data_set[1].get('func')(browser)
 
         print('the end')
 
         browser.driver.quit()
 
+        # close task with good result
+        sql_obj.update_status_task(
+            task_id=task.get('id_queue'), status='3',
+        )
+
+        sql_obj.update_status_task_other(
+            queue_id=task.get('id_queue'), status='2'
+        )
+
         time.sleep(30)
 
     except TaskMissingException:
+        print('not found - sleep')
         time.sleep(30)
 
     except CompanyNotFound:
-        try:
-            sql_obj.update_status_task(
-                task_id=task.get('id_queue'), status='4',
-                time=datetime.datetime.now().strftime('%s')
-            )
+        sql_obj.update_status_task(
+            task_id=task.get('id_queue'), status='4'
+        )
 
-            sql_obj.update_status_task_other(
-                queue_id=task.get('id_queue'), status=3,
-                time=datetime.datetime.now().strftime('%s')
-            )
-        except ValueError:
-            sql_obj.update_status_task(
-                task_id=task.get('id_queue'), status='4',
-                time=str(os.environ.get('TIME_WINDOWS'))
-            )
-
-            sql_obj.update_status_task_other(
-                queue_id=task.get('id_queue'), status=3,
-                time=str(os.environ.get('TIME_WINDOWS'))
-            )
-
+        sql_obj.update_status_task_other(
+            queue_id=task.get('id_queue'), status=3,
+        )
 
 
 if __name__ == '__main__':
