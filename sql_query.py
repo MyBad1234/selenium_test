@@ -1,5 +1,7 @@
 import os
 import json
+import time
+
 import mysql
 from mysql.connector.connection_cext import CMySQLCursor, CMySQLConnection
 
@@ -16,10 +18,17 @@ class DataStructException(Exception):
     pass
 
 
-class SqlQuery:
-    """query for tasks"""
+class SqlOrm:
+    """all universal query for db and work with exceptions"""
 
     def __init__(self):
+        self.cnx: CMySQLConnection = SqlOrm.reconnect()
+        self.repeat_connect = 0
+
+    @staticmethod
+    def reconnect():
+        """reconnect if there are problems"""
+
         connect_data = {
             'user': os.environ.get('DB_USER'),
             'password': os.environ.get('DB_PASSWORD'),
@@ -28,21 +37,84 @@ class SqlQuery:
             'raise_on_warnings': True
         }
 
-        self.cnx: CMySQLConnection = mysql.connector.connect(**connect_data)
+        return mysql.connector.connect(**connect_data)
+
+    def _select_query(self, query, arguments=None) -> list:
+        """universal select query"""
+
+        try:
+            cursor: CMySQLCursor = self.cnx.cursor()
+            if arguments is None:
+                cursor.execute(query)
+            else:
+                cursor.execute(query, arguments)
+
+        except mysql.connector.errors.OperationalError:
+            time.sleep(1)
+
+            # control repeat connection
+            if self.repeat_connect == 10:
+                raise mysql.connector.errors.OperationalError()
+
+            # repeat connect to db
+            self.cnx = SqlQuery.reconnect()
+            self.repeat_connect += 1
+
+            # repeat select query
+            return self.select_query(query, arguments)
+
+        # if connection is good
+        self.repeat_connect = 0
+
+        # get data from query
+        data_list = []
+        for i in cursor:
+            data_list.append(i)
+
+        return data_list
+
+    def _update_query(self, query, arguments=None):
+        """universal update query"""
+
+        try:
+            cursor: CMySQLCursor = self.cnx.cursor()
+            if arguments is None:
+                cursor.execute(query)
+            else:
+                cursor.execute(query, arguments)
+
+            self.cnx.commit()
+
+        except mysql.connector.errors.OperationalError:
+            time.sleep(1)
+
+            # control repeat connection
+            if self.repeat_connect == 10:
+                raise mysql.connector.errors.OperationalError()
+
+            # repeat connect to db
+            self.cnx = SqlQuery.reconnect()
+            self.repeat_connect += 1
+
+            # repeat select query
+            self.select_query(query, arguments)
+
+
+class SqlQuery(SqlOrm):
+    """requests to db for getting task"""
 
     def __get_new_task(self):
         """get task or make exception"""
 
         query = ("SELECT `id`,`entity_id`,`resource_id`,`status_id`, `updated` "
-                "FROM `queue` WHERE `type_id` = 10 AND `status_id` = 1 "
-                "ORDER BY id LIMIT 1")
+                 "FROM `queue` WHERE `type_id` = 10 AND `status_id` = 1 "
+                 "ORDER BY id LIMIT 1")
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query)
+        data_from_query = super()._select_query(query)
 
         # find company
         data = None
-        for i in cursor:
+        for i in data_from_query:
             data = {
                 'id': i[0],
                 'resource_id': i[2],
@@ -58,13 +130,14 @@ class SqlQuery:
     def __get_keywords_coordinates(self, resource_id):
         """get keywords and coordinates for task"""
 
-        query = ("SELECT `keyword`,`coordinates` FROM `user_imitation_yandex` WHERE `id` = %s")
+        query = "SELECT `keyword`,`coordinates` FROM `user_imitation_yandex` WHERE `id` = %s"
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (str(resource_id),))
+        # make request to db
+        data_from_request = super()._select_query(query, (str(resource_id),))
 
+        # get data from this request
         data = None
-        for i in cursor:
+        for i in data_from_request:
             data = {
                 'keyword': i[0],
                 'coordinates': i[1]
@@ -81,11 +154,12 @@ class SqlQuery:
         query = ("SELECT `yandex_id`,`name`,`latitude`,`longitude` "
                  "FROM `itemcampagin` WHERE `id` = %s")
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (str(entity_id),))
+        # make request to db
+        data_from_request = super()._select_query(query, (str(entity_id),))
 
+        # get data from request
         data = None
-        for i in cursor:
+        for i in data_from_request:
             data = {
                 'name': i[1],
                 'x': i[3],
@@ -97,57 +171,35 @@ class SqlQuery:
 
         return data
 
-    def __get_second_task(self, ):
-        """find the child element of the task"""
-
-        query = ("SELECT `status_id`,`result`,`updated` FROM `queue_user_imitation_yandex` "
-                "WHERE `queue_id` = id")
-
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query)
-
-    def test(self):
-        query = "UPDATE `queue` SET `status_id` = 1 WHERE`type_id` = 10"
-
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query)
-
-        self.cnx.commit()
-
-    def update_status_task(self, task_id, status, time):
+    def update_status_task(self, task_id, status, unix_time):
         """inform the database that the task is being completed"""
 
         query = "UPDATE `queue` SET `status_id` = %s, `updated` = %s WHERE `id` = %s"
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (status, time, task_id))
+        super()._update_query(query, (status, unix_time, task_id))
 
-        self.cnx.commit()
-
-    def update_status_task_other(self, queue_id, status, time):
+    def update_status_task_other(self, queue_id, status, unix_time):
         """update status of clicker"""
 
         query = ("UPDATE `queue_user_imitation_yandex` "
                  "SET `status_id` = %s, `updated` = %s"
                  " WHERE `queue_id` = %s")
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(query, (status, time, queue_id))
+        super()._update_query(query, (status, unix_time, queue_id))
 
-        self.cnx.commit()
-
-    def update_stage_task_other(self, queue_id, time, stage):
+    def update_stage_task_other(self, queue_id, unix_time, stage):
         """update stage of clicker"""
 
         select_query = ("SELECT `result` FROM queue_user_imitation_yandex "
                         "WHERE `queue_id` = %s")
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(select_query, (str(queue_id),))
+        data_from_request = super()._select_query(
+            select_query, (str(queue_id),)
+        )
 
         # add new stage for log
         log_stage = None
-        for i in cursor:
+        for i in data_from_request:
             if i[0] is None:
                 log_stage = {}
             else:
@@ -156,18 +208,14 @@ class SqlQuery:
         if log_stage is None:
             raise DataStructException()
 
-        log_stage['photo'] = True
+        log_stage[stage] = True
 
         # query for update stage
         update_query = ("UPDATE `queue_user_imitation_yandex` "
                         "SET `result` = %s , `updated` = %s "
                         "WHERE `queue_id` = %s")
 
-        cursor: CMySQLCursor = self.cnx.cursor()
-        cursor.execute(update_query, (json.dumps(log_stage), time, queue_id))
-
-        self.cnx.commit()
-
+        super()._update_query(update_query, (json.dumps(log_stage), unix_time, queue_id))
 
     def get_data(self):
         """get all data from requests to db"""

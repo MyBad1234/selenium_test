@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import mysql
 import datetime
 
 from components import (
@@ -173,7 +174,6 @@ data_set = [
 def main():
     try:
         sql_obj = SqlQuery()
-        sql_obj.test()
 
         # get new task
         task = sql_obj.get_data()
@@ -253,10 +253,10 @@ def main():
 
         browser.driver.quit()
 
-        time.sleep(120)
+        time.sleep(30)
 
     except TaskMissingException:
-        time.sleep(600)
+        time.sleep(30)
 
     except CompanyNotFound:
         try:
