@@ -27,6 +27,10 @@ class CompanyNotFound(Exception):
     pass
 
 
+class ItIsCompanyException(Exception):
+    pass
+
+
 class Browser:
     """class for create webdriver"""
 
@@ -295,6 +299,14 @@ class SearchCompanyYandex:
                     self.keyword
                     + "\ue007"
                 )
+
+                href = self.browser.driver.execute_script(
+                    "return document.location.href"
+                )
+
+                if '/maps/org/' in href:
+                    raise ItIsCompanyException()
+
                 return
 
             except exceptions.StaleElementReferenceException:

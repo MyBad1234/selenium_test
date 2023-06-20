@@ -1,16 +1,15 @@
 import os
 import sys
 import time
-import mysql
-import datetime
 
-from components import (
+from modules.components import (
     Browser, YandexAuth, YandexPhoto, YandexReviews,
     CompanyException, SearchCompanyYandex, CompanySiteYandex,
-    RouteYandex, PhoneYandex, ModeException, CompanyNotFound,
-    CoordinatesException
+    RouteYandex, PhoneYandex, CompanyNotFound, CoordinatesException,
+    ItIsCompanyException
 )
-from sql_query import SqlQuery, TaskMissingException
+from modules.sql_query import SqlQuery, TaskMissingException
+from modules.log import Logger
 
 
 def photo_func(browser):
@@ -75,14 +74,18 @@ def search_func(browser, my_keywords, my_company):
         keyword=my_keywords,
         company=my_company
     )
-    search_obj.input_text()
-
-    # find company and click to card
     try:
+        # input text and search
+        search_obj.input_text()
+
+        # find company and click to card
         company_btn = search_obj.scroll_results()
         company_btn.click()
 
     except CompanyException:
+        pass
+
+    except ItIsCompanyException:
         pass
 
     print('search_func')
@@ -268,23 +271,41 @@ def main():
         time.sleep(30)
 
     except CompanyNotFound:
+        Logger.write_log(
+            'error - not found company in search: ' + str(task.get('id_queue'))
+        )
+
         sql_obj.update_status_task(
             task_id=task.get('id_queue'), status='4'
         )
-
         sql_obj.update_status_task_other(
             queue_id=task.get('id_queue'), status=3,
         )
+        sql_obj.update_stage_task_other(
+            task.get('id_queue'), stage='search',
+            status=False
+        )
+
+        browser.driver.quit()
+        time.sleep(30)
 
     except CoordinatesException:
+        Logger.write_log(
+            'error - coordinates: ' + str(task.get('id_queue'))
+        )
+
         sql_obj.update_status_task(
             task_id=task.get('id_queue'), status='4'
         )
-
+        sql_obj.update_status_task_other(
+            queue_id=task.get('id_queue'), status=3,
+        )
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='coordinates',
             status=False
         )
+
+        time.sleep(30)
 
 
 if __name__ == '__main__':
