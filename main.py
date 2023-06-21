@@ -123,12 +123,16 @@ def phone_func(browser):
 def route_func(browser, my_keywords, my_company):
     """func for making route"""
 
-    route_obj = RouteYandex(browser, my_keywords, my_company)
-    route_obj.make_route()
-    route_obj.input_text()
+    try:
+        route_obj = RouteYandex(browser, my_keywords, my_company)
+        route_obj.make_route()
+        route_obj.input_text()
 
-    company_btn = route_obj.scroll_results()
-    company_btn.click()
+        company_btn = route_obj.scroll_results()
+        company_btn.click()
+
+    except ItIsCompanyException:
+        pass
 
     print('route_func')
     return {
@@ -200,6 +204,7 @@ def main():
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='coordinates'
         )
+        for_error_stage = 'coordinates'
         url: str = "https://yandex.ru/maps/?ll="
         url += task.get('x')
         url += '%2C'
@@ -220,35 +225,41 @@ def main():
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='search'
         )
+        for_error_stage = 'search'
         data_set[3].get('func')(browser, my_keywords, my_company)
 
         # site
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='site'
         )
+        for_error_stage = 'site'
         data_set[4].get('func')(browser)
 
         # phone
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='phone'
         )
+        for_error_stage = 'phone'
         data_set[5].get('func')(browser)
 
         # route
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='route'
         )
+        for_error_stage = 'route'
         data_set[6].get('func')(browser, my_keywords, my_company)
 
         # photo and reviews
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='photo'
         )
+        for_error_stage = 'photo'
         data_set[0].get('func')(browser)
 
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='reviews'
         )
+        for_error_stage = 'reviews'
         data_set[1].get('func')(browser)
 
         print('the end')
@@ -304,6 +315,27 @@ def main():
             queue_id=task.get('id_queue'), stage='coordinates',
             status=False
         )
+
+        time.sleep(30)
+
+    except Exception as ex:
+        Logger.write_log(
+            'error - ' + for_error_stage + ': ' + str(task.get('id_queue'))
+        )
+
+        sql_obj.update_status_task(
+            task_id=task.get('id_queue'), status='4'
+        )
+        sql_obj.update_status_task_other(
+            queue_id=task.get('id_queue'), status=3,
+        )
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage=for_error_stage,
+            status=False
+        )
+
+        print(ex)
+        browser.driver.quit()
 
         time.sleep(30)
 

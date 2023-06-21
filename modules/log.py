@@ -17,6 +17,3 @@ class Logger:
             file.write(
                 str(datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")) + ": " + text + "\n"
             )
-
-
-Logger.write_log('oloerlfoerlfoerlf')

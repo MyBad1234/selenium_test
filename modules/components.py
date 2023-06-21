@@ -300,6 +300,7 @@ class SearchCompanyYandex:
                     + "\ue007"
                 )
 
+                time.sleep(2)
                 href = self.browser.driver.execute_script(
                     "return document.location.href"
                 )
