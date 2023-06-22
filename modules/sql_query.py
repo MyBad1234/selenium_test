@@ -232,6 +232,7 @@ class SqlQuery(SqlOrm):
 
         return {
             'keywords': keywords_coordinates.get('keyword'),
+            'entity_id': task.get('entity_id'),
             'company': name.get('name'),
             'id_queue': task.get('id'),
             'x': name.get('x'),

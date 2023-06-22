@@ -70,13 +70,14 @@ def auth_func(browser):
     }
 
 
-def search_func(browser, my_keywords, my_company):
+def search_func(browser, my_keywords, my_company, filial):
     """work with search company in yandex maps"""
 
     search_obj = SearchCompanyYandex(
         browser=browser,
         keyword=my_keywords,
-        company=my_company
+        company=my_company,
+        filial=filial
     )
     try:
         # input text and search
@@ -124,11 +125,12 @@ def phone_func(browser):
     }
 
 
-def route_func(browser, my_keywords, my_company):
+def route_func(browser, my_keywords, my_company, filial):
     """func for making route"""
 
     try:
-        route_obj = RouteYandex(browser, my_keywords, my_company)
+        route_obj = RouteYandex(browser, my_keywords,
+                                my_company, filial)
         route_obj.make_route()
         route_obj.input_text()
 
@@ -231,7 +233,10 @@ def main():
             queue_id=task.get('id_queue'), stage='search'
         )
         for_error_stage = 'search'
-        data_set[3].get('func')(browser, my_keywords, my_company)
+        data_set[3].get('func')(
+            browser, my_keywords,
+            my_company, task.get('entity_id')
+        )
 
         # site
         sql_obj.update_stage_task_other(
@@ -252,7 +257,8 @@ def main():
             queue_id=task.get('id_queue'), stage='route'
         )
         for_error_stage = 'route'
-        data_set[6].get('func')(browser, my_keywords, my_company)
+        data_set[6].get('func')(browser, my_keywords,
+                                my_company, task.get('entity_id'))
 
         # photo and reviews
         sql_obj.update_stage_task_other(

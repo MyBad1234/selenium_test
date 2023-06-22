@@ -180,6 +180,7 @@ class YandexReviews:
             raise CompanyException()
 
         # go to tab
+        time.sleep(2)
         self.browser.view_element_from_carousel('Отзывы')
         self.__reviews_tab = self.browser.get_element_from_carousel('Отзывы')
         try:
@@ -290,10 +291,11 @@ class YandexAuth:
 class SearchCompanyYandex:
     """search company by keywords"""
 
-    def __init__(self, browser: Browser, keyword: str, company: str):
+    def __init__(self, browser: Browser, keyword: str, company: str, filial: str):
         self.browser = browser
         self.keyword = keyword
         self.company = company
+        self.filial = filial
 
     def input_text(self):
         """input keyword and company to search"""
@@ -361,12 +363,20 @@ class SearchCompanyYandex:
                 now_height = scroll_height
 
             # control elem
-            condition = self.browser.driver.execute_script("let company; let condition = false; \
-            for (let i of document.querySelectorAll('.search-snippet-view')) { \
-            for (let j of i.querySelectorAll('div')) { if (j.innerText === '" + self.company + "') \
-            { company = i; condition = true }}} if (condition) \
-            { company.scrollIntoView({behavior: 'smooth', block: 'center'}); \
-            return 'yes' } else { return 'no' }")
+            condition_script = ("let company; let condition = false; "
+                                "function isFilial(objLi, filial) {"
+                                "if (objLi.querySelector('.search-snippet-view__body')"
+                                ".getAttribute('data-id') === filial)"
+                                "{ return true } else { return false }}"
+                                "for (let i of document.querySelectorAll('.search-snippet-view')) {"
+                                "for (let j of i.querySelectorAll('div')) { "
+                                "if ((j.innerText === '" + self.company + "') "
+                                "&& isFilial(i, '" + self.filial + "')) { "
+                                "company = i; condition = true }}}"
+                                "if (condition) { company.scrollIntoView({behavior: 'smooth', block: 'center'});"
+                                "return 'yes' } else { return 'no' } ")
+
+            condition = self.browser.driver.execute_script(condition_script)
 
             if condition == 'yes':
                 for_while = False
@@ -460,8 +470,8 @@ class PhoneYandex:
 class RouteYandex(SearchCompanyYandex):
     """click to route"""
 
-    def __init__(self, browser: Browser, keyword: str, company: str):
-        super().__init__(browser, keyword, company)
+    def __init__(self, browser: Browser, keyword: str, company: str, filial: str):
+        super().__init__(browser, keyword, company, filial)
 
     def __get_action_button(self, action_name):
         """get action button by name"""
