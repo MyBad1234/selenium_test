@@ -96,6 +96,18 @@ class Browser:
 
         return click_elem
 
+    def view_element_from_carousel(self, part_name):
+        """use js for view element on carousel"""
+
+        use_script = ("let a;"
+                      "for (let i of document.querySelectorAll('.carousel__content')){"
+                      "for (let j of i.querySelectorAll('div')) {"
+                      "for (let k of i.querySelectorAll('a')) {"
+                      "if (k.innerText == '" + part_name + "') {"
+                      "a = k; }}}} a.scrollIntoView({inline: 'center'})")
+
+        self.driver.execute_script(use_script)
+
     def get_element_from_carousel(self, part_name):
         """get tab from carousel by part_name"""
 
@@ -108,6 +120,9 @@ class Browser:
     def back_to_main(self):
         """go to tab with review of company"""
 
+        self.view_element_from_carousel('Обзор')
+
+        # after scroll click to elem
         back_tab = self.get_element_from_carousel('Обзор')
         back_tab.click()
 
@@ -128,6 +143,7 @@ class YandexPhoto:
             raise CompanyException()
 
         # go tab
+        self.browser.view_element_from_carousel('Фото и видео')
         self.__photo_tab = self.browser.get_element_from_carousel('Фото и видео')
         try:
             self.__photo_tab.click()
@@ -164,6 +180,7 @@ class YandexReviews:
             raise CompanyException()
 
         # go to tab
+        self.browser.view_element_from_carousel('Отзывы')
         self.__reviews_tab = self.browser.get_element_from_carousel('Отзывы')
         try:
             self.__reviews_tab.click()

@@ -25,6 +25,8 @@ def photo_func(browser):
         }
 
     photo_obj.scroll_content()
+    time.sleep(2)
+    photo_obj.browser.back_to_main()
 
     print('photo_func')
     return {
@@ -44,6 +46,8 @@ def review_func(browser):
         }
 
     review_obj.scroll_content()
+    time.sleep(2)
+    review_obj.browser.back_to_main()
 
     print('review_func')
     return {
@@ -194,6 +198,7 @@ def main():
         sql_obj.update_status_task_other(
             queue_id=task.get('id_queue'), status='1'
         )
+        for_error_stage = 'browser'
 
         # decode body
         argument = sys.argv[1]
