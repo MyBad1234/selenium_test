@@ -127,6 +127,28 @@ class SqlQuery(SqlOrm):
 
         return data
 
+    def __get_task_by_id(self, id_queue):
+        """get task without status for test"""
+
+        query = ("SELECT `id`,`entity_id`,`resource_id`,"
+                 "`status_id`, `updated` FROM queue WHERE id = %s;")
+
+        data_from_request = super()._select_query(query, (str(id_queue),))
+
+        data = None
+        for i in data_from_request:
+            data = {
+                'id': i[0],
+                'resource_id': i[2],
+                'status_id': i[3],
+                'entity_id': i[1]
+            }
+
+        if data is None:
+            raise TaskMissingException()
+
+        return data
+
     def __get_keywords_coordinates(self, resource_id):
         """get keywords and coordinates for task"""
 
@@ -223,6 +245,26 @@ class SqlQuery(SqlOrm):
         """get all data from requests to db"""
 
         task = self.__get_new_task()
+        keywords_coordinates = self.__get_keywords_coordinates(
+            task.get('resource_id')
+        )
+        name = self.__get_company(
+            task.get('entity_id')
+        )
+
+        return {
+            'keywords': keywords_coordinates.get('keyword'),
+            'entity_id': task.get('entity_id'),
+            'company': name.get('name'),
+            'id_queue': task.get('id'),
+            'x': name.get('x'),
+            'y': name.get('y')
+        }
+
+    def get_data_by_id(self, id_queue):
+        """get task by id without status"""
+
+        task = self.__get_task_by_id(id_queue)
         keywords_coordinates = self.__get_keywords_coordinates(
             task.get('resource_id')
         )

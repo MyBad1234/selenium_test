@@ -160,8 +160,8 @@ class YandexPhoto:
         """scroll all photo of company"""
 
         time.sleep(2)
-        self.browser.driver.execute_script("document.querySelector('.scroll__container').\
-            scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
+        self.browser.driver.execute_script("for (let i of document.querySelectorAll \
+            ('.scroll__container')) { i.scrollTo(0, i.scrollHeight) }")
 
 
 class YandexReviews:
@@ -198,8 +198,8 @@ class YandexReviews:
         """scroll tab with reviews"""
 
         time.sleep(2)
-        self.browser.driver.execute_script("document.querySelector('.scroll__container').\
-                    scrollTo(0, document.querySelector('.scroll__container').scrollHeight)")
+        self.browser.driver.execute_script("for (let i of document.querySelectorAll \
+                    ('.scroll__container')) { i.scrollTo(0, i.scrollHeight) }")
 
 
 class YandexAuth:
@@ -462,9 +462,8 @@ class PhoneYandex:
 
         time.sleep(5)
 
-        self.browser.driver.execute_script(
-            "document.querySelector('.scroll__container').scrollTo(0, 0)"
-        )
+        self.browser.driver.execute_script("for (let i of document.querySelectorAll \
+                    ('.scroll__container')) { i.scrollTo(0, 0) }")
 
 
 class RouteYandex(SearchCompanyYandex):
