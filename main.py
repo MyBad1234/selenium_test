@@ -118,7 +118,6 @@ def main(main_argument):
         time.sleep(30)
 
     except TaskMissingException:
-        print('not found - sleep')
         time.sleep(30)
 
     except CompanyNotFound:
@@ -159,6 +158,11 @@ def main(main_argument):
         time.sleep(30)
 
     except Exception as ex:
+        # view error
+        for i in ex.args:
+            print(i)
+
+        # write logs
         Logger.write_log(
             'error - ' + for_error_stage + ': ' + str(task.get('id_queue'))
         )

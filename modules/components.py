@@ -342,6 +342,7 @@ class SearchCompanyYandex:
         now_height = 0
 
         # run scripts
+        """
         for_while = True
         while for_while:
             time.sleep(2)
@@ -385,7 +386,7 @@ class SearchCompanyYandex:
                     raise CompanyNotFound()
 
         time.sleep(3)
-
+        """
         # if list of company
         elements = self.browser.driver.find_elements(
             by=By.CSS_SELECTOR,
