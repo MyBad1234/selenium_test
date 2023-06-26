@@ -10,6 +10,7 @@ from modules.logic.prod_logic import data_set
 
 
 def main(main_argument):
+    print('\n\n\n\n\n\n\n\n')
     try:
         sql_obj = SqlQuery()
 
@@ -32,9 +33,9 @@ def main(main_argument):
 
         # make browser
         if main_argument == 'single':
-            browser = Browser(mode='window')
+            browser = Browser(mode='window', id_queue=task.get('id_queue'))
         else:
-            browser = Browser(mode=main_argument)
+            browser = Browser(mode=main_argument, id_queue=task.get('id_queue'))
 
         # generate url and open it
         sql_obj.update_stage_task_other(
@@ -195,12 +196,10 @@ if __name__ == '__main__':
 
         if console_argv == 'window':
             while True:
-                print('\n\n\n\n\n\n\n\n')
                 main('window')
 
         elif console_argv == 'docker':
             while True:
-                print('\n\n\n\n\n\n\n\n')
                 main('docker')
 
         elif console_argv == 'single':

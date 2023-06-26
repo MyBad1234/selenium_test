@@ -6,6 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
+from modules.log import ScreenLog
+
 
 class CompanyException(Exception):
     pass
@@ -37,7 +39,8 @@ class Browser:
     company_found: bool
     in_windows: bool
 
-    def __init__(self, mode: str):
+    def __init__(self, mode: str, id_queue: str):
+        self.id_queue = id_queue
         if mode == 'window':
             options = webdriver.ChromeOptions()
             options.add_argument('--headless')
@@ -446,6 +449,10 @@ class PhoneYandex:
         """scroll card to phone"""
 
         time.sleep(5)
+        ScreenLog.save_screens(
+            self.browser, self.browser.id_queue,
+            'before_script'
+        )
 
         # scroll to phone
         self.browser.driver.execute_script(
