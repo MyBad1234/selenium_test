@@ -195,10 +195,12 @@ if __name__ == '__main__':
 
         if console_argv == 'window':
             while True:
+                print('\n\n\n\n\n\n\n\n')
                 main('window')
 
         elif console_argv == 'docker':
             while True:
+                print('\n\n\n\n\n\n\n\n')
                 main('docker')
 
         elif console_argv == 'single':
