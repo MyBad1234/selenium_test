@@ -2,8 +2,6 @@ import os
 import pathlib
 import datetime
 
-from modules.components import Browser
-
 
 class Logger:
     """class for logs"""
@@ -38,7 +36,7 @@ class ScreenLog:
     """functions for saving screen"""
 
     @staticmethod
-    def save_screens(browser: Browser, id_queue, stage):
+    def save_screens(browser, id_queue, stage):
         screen_path = str(pathlib.Path(__file__).parent.parent)
         screen_path += '/screens/'
 
