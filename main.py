@@ -10,7 +10,6 @@ from modules.logic.prod_logic import data_set
 
 
 def main(main_argument):
-    print('\n\n\n\n\n\n\n\n')
     try:
         sql_obj = SqlQuery()
 
@@ -20,6 +19,8 @@ def main(main_argument):
             task = sql_obj.get_data_by_id(id_queue)
         else:
             task = sql_obj.get_data()
+
+        print('\n\n\n\n\n\n\n\n')
 
         # set new status for this task (in work)
         sql_obj.update_status_task(
