@@ -70,11 +70,11 @@ def main(main_argument):
         )
 
         # site
-        #sql_obj.update_stage_task_other(
-        #    queue_id=task.get('id_queue'), stage='site'
-        #)
-        #for_error_stage = 'site'
-        #data_set[4].get('func')(browser)
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='site'
+        )
+        for_error_stage = 'site'
+        data_set[4].get('func')(browser)
 
         # phone
         #sql_obj.update_stage_task_other(
@@ -187,7 +187,6 @@ def main(main_argument):
             for_error_stage
         )
         browser.driver.quit()
-        input()
 
         time.sleep(30)
 
