@@ -449,10 +449,6 @@ class PhoneYandex:
         """scroll card to phone"""
 
         time.sleep(5)
-        ScreenLog.save_screens(
-            self.browser, self.browser.id_queue,
-            'before_script'
-        )
 
         # scroll to phone
         self.browser.driver.execute_script(

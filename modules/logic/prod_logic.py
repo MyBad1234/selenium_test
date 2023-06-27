@@ -127,10 +127,11 @@ def route_func(browser, my_keywords, my_company, filial):
         route_obj = RouteYandex(browser, my_keywords,
                                 my_company, filial)
         route_obj.make_route()
-        route_obj.input_text()
+        # route_obj.input_text()
 
-        company_btn = route_obj.scroll_results()
-        company_btn.click()
+        # company_btn = route_obj.scroll_results()
+        # company_btn.click()
+        route_obj.browser.driver.back()
 
     except ItIsCompanyException:
         pass
