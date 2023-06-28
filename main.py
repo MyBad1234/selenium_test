@@ -66,22 +66,22 @@ def main(main_argument):
         for_error_stage = 'search'
         data_set[3].get('func')(
             browser, my_keywords,
-            my_company, task.get('entity_id')
+            my_company, task.get('yandex_id')
         )
 
         # site
-        sql_obj.update_stage_task_other(
-            queue_id=task.get('id_queue'), stage='site'
-        )
-        for_error_stage = 'site'
-        data_set[4].get('func')(browser)
+        # sql_obj.update_stage_task_other(
+        #     queue_id=task.get('id_queue'), stage='site'
+        # )
+        # for_error_stage = 'site'
+        # data_set[4].get('func')(browser)
 
         # phone
-        #sql_obj.update_stage_task_other(
-        #    queue_id=task.get('id_queue'), stage='phone'
-        #)
-        #for_error_stage = 'phone'
-        #data_set[5].get('func')(browser)
+        sql_obj.update_stage_task_other(
+            queue_id=task.get('id_queue'), stage='phone'
+        )
+        for_error_stage = 'phone'
+        data_set[5].get('func')(browser)
 
         # route
         sql_obj.update_stage_task_other(
@@ -89,7 +89,7 @@ def main(main_argument):
         )
         for_error_stage = 'route'
         data_set[6].get('func')(browser, my_keywords,
-                                my_company, task.get('entity_id'))
+                                my_company, task.get('yandex_id'))
 
         # photo and reviews
         sql_obj.update_stage_task_other(
@@ -159,6 +159,7 @@ def main(main_argument):
 
         time.sleep(30)
 
+    """
     except Exception as ex:
         # view error
         for i in ex.args:
@@ -189,6 +190,7 @@ def main(main_argument):
         browser.driver.quit()
 
         time.sleep(30)
+    """
 
 
 if __name__ == '__main__':

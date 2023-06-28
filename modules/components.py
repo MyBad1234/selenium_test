@@ -345,7 +345,7 @@ class SearchCompanyYandex:
         now_height = 0
 
         # run scripts
-        """
+
         for_while = True
         while for_while:
             time.sleep(2)
@@ -375,7 +375,7 @@ class SearchCompanyYandex:
                                 "for (let i of document.querySelectorAll('.search-snippet-view')) {"
                                 "for (let j of i.querySelectorAll('div')) { "
                                 "if ((j.innerText === '" + self.company + "') "
-                                "&& isFilial(i, '" + self.filial + "')) { "
+                                "&& isFilial(i, '" + str(self.filial) + "')) { "
                                 "company = i; condition = true }}}"
                                 "if (condition) { company.scrollIntoView({behavior: 'smooth', block: 'center'});"
                                 "return 'yes' } else { return 'no' } ")
@@ -386,10 +386,10 @@ class SearchCompanyYandex:
                 for_while = False
             else:
                 if not for_while:
-                    raise CompanyNotFound()
+                    raise KeyError()
 
         time.sleep(3)
-        """
+
         # if list of company
         elements = self.browser.driver.find_elements(
             by=By.CSS_SELECTOR,

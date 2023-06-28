@@ -103,6 +103,27 @@ class SqlOrm:
 class SqlQuery(SqlOrm):
     """requests to db for getting task"""
 
+    @staticmethod
+    def get_coordinates(from_task: dict, from_filial: dict):
+        """get x, y from data"""
+
+        coordinates: str = from_task.get('coordinates')
+
+        # control coordinates from task
+        try:
+            if type(coordinates) == str:
+                x = coordinates.split(', ')[0]
+                y = coordinates.split(', ')[1]
+                return x, y
+            else:
+                raise IndexError()
+
+        except IndexError:
+            x = from_filial.get('x')
+            y = from_filial.get('y')
+
+            return x, y
+
     def __get_new_task(self):
         """get task or make exception"""
 
@@ -185,7 +206,8 @@ class SqlQuery(SqlOrm):
             data = {
                 'name': i[1],
                 'x': i[3],
-                'y': i[2]
+                'y': i[2],
+                'yandex_id': i[0]
             }
 
         if data is None:
@@ -252,13 +274,17 @@ class SqlQuery(SqlOrm):
             task.get('entity_id')
         )
 
+        # get coordinates
+        coordinates = SqlQuery.get_coordinates(keywords_coordinates, name)
+
         return {
             'keywords': keywords_coordinates.get('keyword'),
             'entity_id': task.get('entity_id'),
             'company': name.get('name'),
             'id_queue': task.get('id'),
-            'x': name.get('x'),
-            'y': name.get('y')
+            'x': coordinates[0],
+            'y': coordinates[1],
+            'yandex_id': name.get('yandex_id')
         }
 
     def get_data_by_id(self, id_queue):
@@ -272,11 +298,15 @@ class SqlQuery(SqlOrm):
             task.get('entity_id')
         )
 
+        # get coordinates
+        coordinates = SqlQuery.get_coordinates(keywords_coordinates, name)
+
         return {
             'keywords': keywords_coordinates.get('keyword'),
             'entity_id': task.get('entity_id'),
             'company': name.get('name'),
             'id_queue': task.get('id'),
-            'x': name.get('x'),
-            'y': name.get('y')
+            'x': coordinates[0],
+            'y': coordinates[1],
+            'yandex_id': name.get('yandex_id')
         }
