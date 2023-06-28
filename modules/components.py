@@ -386,7 +386,7 @@ class SearchCompanyYandex:
                 for_while = False
             else:
                 if not for_while:
-                    raise KeyError()
+                    raise CompanyNotFound()
 
         time.sleep(3)
 

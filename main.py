@@ -159,7 +159,6 @@ def main(main_argument):
 
         time.sleep(30)
 
-    """
     except Exception as ex:
         # view error
         for i in ex.args:
@@ -190,7 +189,6 @@ def main(main_argument):
         browser.driver.quit()
 
         time.sleep(30)
-    """
 
 
 if __name__ == '__main__':
