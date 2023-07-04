@@ -5,8 +5,8 @@ from modules.components import (
     Browser, CompanyNotFound, CoordinatesException,
 )
 from modules.sql_query import SqlQuery, TaskMissingException
-from modules.log import Logger, ScreenLog
-from modules.logic.prod_logic import data_set
+from modules.utils.log import Logger, ScreenLog
+from modules.prod_logic import data_set
 
 
 def main(main_argument):
