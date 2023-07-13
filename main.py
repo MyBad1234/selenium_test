@@ -1,5 +1,6 @@
 import sys
 import time
+import traceback
 
 from modules.components import (
     Browser, CompanyNotFound, CoordinatesException,
@@ -9,8 +10,31 @@ from modules.utils.log import Logger, ScreenLog
 from modules.prod_logic import data_set
 
 
+def make_url(task_data: dict):
+    """make url for yandex map"""
+
+    url: str = "https://yandex.ru/maps/?ll="
+    url += task_data.get('x')
+    url += '%2C'
+    url += task_data.get('y')
+    url += '&z=16.06'
+
+    return url
+
+
+def get_proxy(get_proxy_obj: SqlQuery):
+    """get data for using proxy"""
+
+    # get data and set last time update
+    data = get_proxy_obj.get_proxy()
+    get_proxy_obj.update_proxy(data.get('id'))
+
+    return data
+
+
 def main(main_argument):
     try:
+        for_error_stage = 'before'
         sql_obj = SqlQuery()
 
         # get new task
@@ -34,22 +58,17 @@ def main(main_argument):
 
         # make browser
         if main_argument == 'single':
-            browser = Browser(mode='window', id_queue=task.get('id_queue'))
+            browser = Browser(mode='window', id_queue=task.get('id_queue'), proxy=get_proxy(sql_obj))
         else:
-            browser = Browser(mode=main_argument, id_queue=task.get('id_queue'))
+            browser = Browser(mode=main_argument, id_queue=task.get('id_queue'), proxy=get_proxy(sql_obj))
 
         # generate url and open it
         sql_obj.update_stage_task_other(
             queue_id=task.get('id_queue'), stage='coordinates'
         )
         for_error_stage = 'coordinates'
-        url: str = "https://yandex.ru/maps/?ll="
-        url += task.get('x')
-        url += '%2C'
-        url += task.get('y')
-        url += '&z=16.06'
 
-        browser.driver.get(url=url)
+        browser.driver.get(url=make_url(task))
         browser.company_found = True
 
         # get keyword and company
@@ -161,8 +180,7 @@ def main(main_argument):
 
     except Exception as ex:
         # view error
-        for i in ex.args:
-            print(i)
+        print(traceback.format_exc())
 
         # write logs
         Logger.write_log(
@@ -179,8 +197,6 @@ def main(main_argument):
             queue_id=task.get('id_queue'), stage=for_error_stage,
             status=False
         )
-
-        print(ex)
 
         ScreenLog.save_screens(
             browser, task.get('id_queue'),

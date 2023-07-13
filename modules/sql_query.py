@@ -18,6 +18,12 @@ class DataStructException(Exception):
     pass
 
 
+class ProxyNotFoundExceptions(Exception):
+    """if there is no proxy"""
+
+    pass
+
+
 class SqlOrm:
     """all universal query for db and work with exceptions"""
 
@@ -147,6 +153,36 @@ class SqlQuery(SqlOrm):
             raise TaskMissingException()
 
         return data
+
+    def get_proxy(self):
+        """get data for using proxy"""
+
+        query = ("SELECT `ip`, `login`, `password`, `id` FROM `proxy` WHERE `date_off` "
+                 "> " + str(int(time.time())) + " AND `connect_type_id` = 2 ORDER BY "
+                 "`last_active` ASC LIMIT 1")
+
+        data_from_select = super()._select_query(query)
+
+        # find proxy
+        proxy = None
+        for i in data_from_select:
+            proxy = {
+                'ip': str(i[0]),
+                'port': '1050',
+                'id': str(i[3])
+            }
+
+        if proxy is None:
+            raise ProxyNotFoundExceptions()
+
+        return proxy
+
+    def update_proxy(self, id_proxy):
+        """update time of using proxy"""
+
+        query = "UPDATE proxy SET `last_active` = %s WHERE `id` = %s"
+
+        super()._update_query(query, (str(int(time.time())), id_proxy))
 
     def __get_task_by_id(self, id_queue):
         """get task without status for test"""

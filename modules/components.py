@@ -4,9 +4,6 @@ from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-
-from modules.utils.log import ScreenLog
 
 
 class CompanyException(Exception):
@@ -39,27 +36,30 @@ class Browser:
     company_found: bool
     in_windows: bool
 
-    def __init__(self, mode: str, id_queue: str):
+    def __init__(self, mode: str, id_queue: str, proxy: dict):
         self.id_queue = id_queue
         if mode == 'window':
             options = webdriver.ChromeOptions()
-            options.add_argument("--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 16_1 like Mac OS X) "
-                                 "AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/114.0.5735.124 "
-                                 "Mobile/15E148 Safari/604.1")
+
+            # set proxy
+            proxy_str = proxy.get('proxy') + ':' + proxy.get('port')
+            options.add_argument('--proxy-server=%s' % proxy_str)
 
             self.driver = webdriver.Chrome(options=options)
             self.in_windows = True
         elif mode == 'docker':
             # set options for browser in background
-            options = FirefoxOptions()
+            options = webdriver.ChromeOptions()
             options.add_argument('--headless')
             options.add_argument('--no-sandbox')
             options.add_argument("--disable-gpu")
 
+            # set proxy
+            proxy_str = proxy.get('proxy') + ':' + proxy.get('port')
+            options.add_argument('--proxy-server=%s' % proxy_str)
+
             # run background browser
-            self.driver = webdriver.Firefox(
-                options=options
-            )
+            self.driver = webdriver.Chrome(options=options)
             self.in_windows = False
         else:
             raise ModeException()
