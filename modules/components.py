@@ -5,29 +5,7 @@ from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
 
-
-class CompanyException(Exception):
-    pass
-
-
-class ModeException(Exception):
-    pass
-
-
-class CoordinatesException(Exception):
-    pass
-
-
-class AuthException(Exception):
-    pass
-
-
-class CompanyNotFound(Exception):
-    pass
-
-
-class ItIsCompanyException(Exception):
-    pass
+from modules.utils import exceptions
 
 
 class Browser:
@@ -42,7 +20,7 @@ class Browser:
             options = webdriver.ChromeOptions()
 
             # set proxy
-            proxy_str = proxy.get('proxy') + ':' + proxy.get('port')
+            proxy_str = proxy.get('ip') + ':' + proxy.get('port')
             options.add_argument('--proxy-server=%s' % proxy_str)
 
             self.driver = webdriver.Chrome(options=options)
@@ -55,19 +33,19 @@ class Browser:
             options.add_argument("--disable-gpu")
 
             # set proxy
-            proxy_str = proxy.get('proxy') + ':' + proxy.get('port')
+            proxy_str = proxy.get('ip') + ':' + proxy.get('port')
             options.add_argument('--proxy-server=%s' % proxy_str)
 
             # run background browser
             self.driver = webdriver.Chrome(options=options)
             self.in_windows = False
         else:
-            raise ModeException()
+            raise exceptions.ModeException()
 
     def recursive_func(self, part_name):
 
         if self.company_found is not True:
-            raise CompanyException()
+            raise exceptions.CompanyException()
 
         time.sleep(5)
         cards_menu = self.driver.find_elements(
@@ -95,7 +73,7 @@ class Browser:
 
         # if not found element
         if click_elem is None:
-            raise CompanyException()
+            raise exceptions.CompanyException()
 
         return click_elem
 
@@ -143,7 +121,7 @@ class YandexPhoto:
 
         if self.browser.company_found is not True:
             # control company
-            raise CompanyException()
+            raise exceptions.CompanyException()
 
         # go tab
         self.browser.view_element_from_carousel('Фото и видео')
@@ -180,7 +158,7 @@ class YandexReviews:
 
         if self.browser.company_found is not True:
             # control company
-            raise CompanyException()
+            raise exceptions.CompanyException()
 
         # go to tab
         time.sleep(2)
@@ -272,7 +250,7 @@ class YandexAuth:
             if len(value_input) == 0:
                 return
 
-        raise AuthException()
+        raise exceptions.AuthException()
 
     def auth(self, login, password):
         """use all methods for auth in yandex maps"""
@@ -328,7 +306,7 @@ class SearchCompanyYandex:
                 )
 
                 if '/maps/org/' in href:
-                    raise ItIsCompanyException()
+                    raise exceptions.ItIsCompanyException()
 
                 return
 
@@ -386,7 +364,7 @@ class SearchCompanyYandex:
                 for_while = False
             else:
                 if not for_while:
-                    raise CompanyNotFound()
+                    raise exceptions.CompanyNotFound()
 
         time.sleep(3)
 

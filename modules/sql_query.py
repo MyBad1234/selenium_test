@@ -5,23 +5,7 @@ import time
 import mysql
 from mysql.connector.connection_cext import CMySQLCursor, CMySQLConnection
 
-
-class TaskMissingException(Exception):
-    """if task is not fond"""
-
-    pass
-
-
-class DataStructException(Exception):
-    """if the record has no links"""
-
-    pass
-
-
-class ProxyNotFoundExceptions(Exception):
-    """if there is no proxy"""
-
-    pass
+from modules.utils import exceptions
 
 
 class SqlOrm:
@@ -150,7 +134,7 @@ class SqlQuery(SqlOrm):
             }
 
         if data is None:
-            raise TaskMissingException()
+            raise exceptions.TaskMissingException()
 
         return data
 
@@ -173,7 +157,7 @@ class SqlQuery(SqlOrm):
             }
 
         if proxy is None:
-            raise ProxyNotFoundExceptions()
+            raise exceptions.ProxyNotFoundExceptions()
 
         return proxy
 
@@ -202,7 +186,7 @@ class SqlQuery(SqlOrm):
             }
 
         if data is None:
-            raise TaskMissingException()
+            raise exceptions.TaskMissingException()
 
         return data
 
@@ -223,7 +207,7 @@ class SqlQuery(SqlOrm):
             }
 
         if data is None:
-            raise DataStructException()
+            raise exceptions.DataStructException()
 
         return data
 
@@ -247,7 +231,7 @@ class SqlQuery(SqlOrm):
             }
 
         if data is None:
-            raise DataStructException()
+            raise exceptions.DataStructException()
 
         return data
 

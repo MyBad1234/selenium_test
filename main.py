@@ -1,13 +1,13 @@
 import sys
 import time
 import traceback
+import datetime
+from mysql.connector import errors
 
-from modules.components import (
-    Browser, CompanyNotFound, CoordinatesException,
-)
-from modules.sql_query import SqlQuery, TaskMissingException
-from modules.utils.log import Logger, ScreenLog
+from modules.components import Browser
+from modules.sql_query import SqlQuery
 from modules.prod_logic import data_set
+from modules.utils import exceptions
 
 
 def make_url(task_data: dict):
@@ -32,6 +32,44 @@ def get_proxy(get_proxy_obj: SqlQuery):
     return data
 
 
+def write_error(error: str) -> str:
+    """write error to console with time"""
+
+    now = datetime.datetime.now()
+
+    # get data for write
+    year = str(now.year)
+    month = str(now.month)
+    day = str(now.day)
+    date_str = day + "." + month + "." + year
+
+    hour = str(now.hour)
+    minute = str(now.minute)
+    second = str(now.second)
+    time_str = hour + ":" + minute + ":" + second
+
+    return date_str + " " + time_str + " error: " + error
+
+
+def write_log(log: str) -> str:
+    """write log to console with time"""
+
+    now = datetime.datetime.now()
+
+    # get data for write
+    year = str(now.year)
+    month = str(now.month)
+    day = str(now.day)
+    date_str = day + "." + month + "." + year
+
+    hour = str(now.hour)
+    minute = str(now.minute)
+    second = str(now.second)
+    time_str = hour + ":" + minute + ":" + second
+
+    return date_str + " " + time_str + " log: " + log
+
+
 def main(main_argument):
     try:
         for_error_stage = 'before'
@@ -45,6 +83,7 @@ def main(main_argument):
             task = sql_obj.get_data()
 
         print('\n\n\n\n\n\n\n\n')
+        print(write_log('task: ' + str(task.get('id_queue'))))
 
         # set new status for this task (in work)
         sql_obj.update_status_task(
@@ -138,14 +177,14 @@ def main(main_argument):
 
         time.sleep(30)
 
-    except TaskMissingException:
+    except errors.ProgrammingError:
+        print(write_error('incorrect data for connection to db'))
+
+    except exceptions.TaskMissingException:
         time.sleep(30)
 
-    except CompanyNotFound:
-        Logger.write_log(
-            'error - not found company in search: ' + str(task.get('id_queue'))
-        )
-
+    except exceptions.CompanyNotFound:
+        # write error in db
         sql_obj.update_status_task(
             task_id=task.get('id_queue'), status='4'
         )
@@ -160,11 +199,8 @@ def main(main_argument):
         browser.driver.quit()
         time.sleep(30)
 
-    except CoordinatesException:
-        Logger.write_log(
-            'error - coordinates: ' + str(task.get('id_queue'))
-        )
-
+    except exceptions.CoordinatesException:
+        # write error in db
         sql_obj.update_status_task(
             task_id=task.get('id_queue'), status='4'
         )
@@ -178,15 +214,11 @@ def main(main_argument):
 
         time.sleep(30)
 
-    except Exception as ex:
+    except Exception:
         # view error
         print(traceback.format_exc())
 
         # write logs
-        Logger.write_log(
-            'error - ' + for_error_stage + ': ' + str(task.get('id_queue'))
-        )
-
         sql_obj.update_status_task(
             task_id=task.get('id_queue'), status='4'
         )
@@ -198,10 +230,6 @@ def main(main_argument):
             status=False
         )
 
-        ScreenLog.save_screens(
-            browser, task.get('id_queue'),
-            for_error_stage
-        )
         browser.driver.quit()
 
         time.sleep(30)

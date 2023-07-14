@@ -2,9 +2,10 @@ import os
 import time
 from modules.components import (
     YandexPhoto, YandexReviews, YandexAuth, SearchCompanyYandex,
-    CompanyException, ItIsCompanyException, CompanySiteYandex,
-    PhoneYandex, RouteYandex
+    CompanySiteYandex, PhoneYandex, RouteYandex
 )
+
+from modules.utils import exceptions
 
 
 def photo_func(browser):
@@ -82,10 +83,10 @@ def search_func(browser, my_keywords, my_company, filial):
         company_btn = search_obj.scroll_results()
         company_btn.click()
 
-    except CompanyException:
+    except exceptions.CompanyException:
         pass
 
-    except ItIsCompanyException:
+    except exceptions.ItIsCompanyException:
         pass
 
     print('search_func')
@@ -133,7 +134,7 @@ def route_func(browser, my_keywords, my_company, filial):
         # company_btn.click()
         route_obj.browser.driver.back()
 
-    except ItIsCompanyException:
+    except exceptions.ItIsCompanyException:
         pass
 
     print('route_func')
