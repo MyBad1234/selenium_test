@@ -5,24 +5,20 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
     libnspr4 libnss3 lsb-release xdg-utils libxss1 libdbus-glib-1-2 \
     curl unzip wget \
-    xvfb
+    xvfb unzip
 
-RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz && \
-    tar -zxf geckodriver-v0.32.2-linux64.tar.gz -C /usr/local/bin && \
-    chmod +x /usr/local/bin/geckodriver && \
-    rm geckodriver-v0.32.2-linux64.tar.gz
+WORKDIR /app
 
-RUN FIREFOX_SETUP=firefox-setup.tar.bz2 && \
-    apt-get purge firefox && \
-    wget -O $FIREFOX_SETUP "https://download.mozilla.org/?product=firefox-latest&os=linux64" && \
-    tar xjf $FIREFOX_SETUP -C /opt/ && \
-    ln -s /opt/firefox/firefox /usr/bin/firefox && \
-    rm $FIREFOX_SETUP
+RUN wget https://chromedriver.storage.googleapis.com/79.0.3945.36/chromedriver_linux64.zip && \
+    unzip chromedriver_linux64.zip -d . && \
+    chmod +x chromedriver
+
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg -i --force-depends google-chrome-stable_current_amd64.deb && \
+    apt-get install -f -y
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
-WORKDIR /app
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
